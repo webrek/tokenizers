@@ -15,6 +15,7 @@ require __DIR__ . '/../php/Tokenizers/Encoding.php';
 
 $wp   = Encoding::fromHuggingFace(__DIR__ . '/reference/fixtures/bert_tokenizer.json');
 $fix  = json_decode(file_get_contents(__DIR__ . '/reference/fixtures/wordpiece_conformance.json'), true);
+if (!is_array($fix) || count($fix) === 0) { echo "EMPTY FIXTURE\n"; exit(1); }
 $fail = 0;
 
 foreach ($fix as $i => $case) {
