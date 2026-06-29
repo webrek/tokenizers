@@ -4,7 +4,7 @@ Byte-exact tokenization vs the tiktoken reference (cl100k_base, o200k_base)
 <?php
 if (!extension_loaded('tokenizers')) { echo 'skip'; exit; }
 require __DIR__ . '/../php/Tokenizers/Encoding.php';
-try { \Tokenizers\Encoding::load('cl100k_base'); }
+try { foreach (['cl100k_base', 'o200k_base'] as $n) \Tokenizers\Encoding::load($n); }
 catch (\Throwable $e) { echo 'skip vocab unavailable (offline)'; }
 ?>
 --FILE--

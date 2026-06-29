@@ -18,4 +18,5 @@ for name in ["cl100k_base", "o200k_base"]:
 os.makedirs("tests/reference/fixtures", exist_ok=True)
 with open("tests/reference/fixtures/conformance.json", "w") as f:
     json.dump(out, f, ensure_ascii=False, indent=0)
+    f.write("\n")
 print("wrote tests/reference/fixtures/conformance.json")
