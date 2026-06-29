@@ -1,5 +1,14 @@
+/* getline() and ssize_t are POSIX.1-2008. glibc only exposes them when this
+   feature-test macro is set before any system header is included; macOS exposes
+   them by default. The PHP extension build gets _GNU_SOURCE from phpize, but the
+   standalone C unit-test compile does not — so set it here for portability. */
+#if !defined(_POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
+#  define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "loader_tiktoken.h"
 #include "base64.h"
+#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
