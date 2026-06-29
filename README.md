@@ -1,397 +1,134 @@
 # tokenizers
 
-Native PHP extension (C) for byte-level BPE tokenization. Tiktoken-compatible
-(`cl100k_base`, `o200k_base`) and supports HuggingFace `tokenizer.json` BPE
-models. Apache-2.0.
+> A native PHP extension that counts, encodes, and decodes LLM tokens — **byte-exact** with the reference tokenizers, **fast**, and with **no Rust toolchain**. Plus a pure-PHP companion that counts **Claude** and **Gemini** tokens through their official APIs.
 
-## Why a C extension?
+![version](https://img.shields.io/badge/version-0.1.0-blue)
+![php](https://img.shields.io/badge/php-8.3%20%7C%208.4-777bb4)
+![thread safety](https://img.shields.io/badge/ZTS-supported-success)
+![license](https://img.shields.io/badge/license-Apache--2.0-green)
 
-| Property | Pure-PHP tiktoken port | This extension |
+Think of it as a **scale for AI text**: before you send a prompt to an LLM, weigh it
+in tokens so you know what it will **cost** and whether it **fits** the model's
+context window — all from PHP, exactly, without rebuilding a 26 MB vocabulary on
+every request.
+
+```php
+use Tokenizers\Encoding;
+
+$enc = Encoding::load('cl100k_base');                 // GPT-4 / GPT-4o-class encoding
+echo $enc->countTokens('Hello, world! 🎉');           // 7
+```
+
+---
+
+## Why this extension?
+
+| Property | Pure-PHP tiktoken port | **This extension** |
 |---|---|---|
-| Memory per worker | ~26 MB vocab rebuild on each request | Loaded **once** per worker process |
-| Worst-case complexity | O(n²) per pre-token piece | **O(n log n)** (heap-based merge) |
-| Installation | Pure PHP, no native deps | Single `.so`; no Rust toolchain, no `ffi.enable` |
-| Small-prompt throughput | **Faster** (no FFI overhead) | Slower — use pure-PHP for <100 tokens |
+| Memory per worker | ~26 MB vocab rebuilt **every request** | Loaded **once** per worker process |
+| Worst-case latency | O(n²) per pre-token piece | **O(n log n)** heap-based merge |
+| Install | Pure PHP | Single `.so` — **no Rust**, no `ffi.enable` |
+| Accuracy | Approximate | **Byte-exact** vs the reference (tiktoken / BERT / T5) |
+| Models | OpenAI only | OpenAI **+ BERT + T5 + Llama/Mistral/Qwen… + Claude/Gemini via API** |
 
-**The wins are memory, worst-case latency, and installability — not throughput on
-small inputs.** If your prompt fits in a tweet, a pure-PHP implementation will be
-faster. This extension exists for workloads where (a) you care about the 26 MB
-per-process overhead or (b) adversarial inputs could trigger quadratic behavior.
+The wins are **memory, worst-case latency, accuracy, and installability** — not raw
+throughput on tiny inputs. For prompts that fit in a tweet, a pure-PHP port can be
+faster (no extension-call overhead). This extension is for workloads where the
+26 MB-per-worker overhead, adversarial inputs, or byte-exactness actually matter.
 
 ## Supported models
 
-### Locally and exactly
+### Locally, byte-exact
 
-| Family | Models | Encoding |
+| Algorithm | Models | How to load |
 |---|---|---|
-| OpenAI | GPT-4, GPT-4o (text), o1, o3 | `cl100k_base` |
-| OpenAI | GPT-4o (multimodal), o1 mini/pro | `o200k_base` |
-| Open-weight | GPT-2, RoBERTa | HuggingFace BPE `tokenizer.json` |
-| Open-weight | Llama 3, Mistral (tekken), Qwen, DeepSeek | HuggingFace BPE `tokenizer.json` |
+| **BPE** (tiktoken) | GPT-4, GPT-4o (text), o1, o3 | `Encoding::load('cl100k_base')` |
+| **BPE** (tiktoken) | GPT-4o (multimodal), o1 mini/pro | `Encoding::load('o200k_base')` |
+| **BPE** (HuggingFace) | GPT-2, RoBERTa, Llama 3, Mistral (tekken), Qwen, DeepSeek | `Encoding::fromHuggingFace('tokenizer.json')` |
+| **WordPiece** | BERT family (bert-base-uncased, …) | `Encoding::fromHuggingFace('tokenizer.json')` |
+| **Unigram** | T5, ALBERT (SentencePiece) | `Encoding::fromHuggingFace('tokenizer.json')` |
 
-Conformance is byte-exact with the Python `tiktoken` reference. Any diff against
-the committed fixture set fails CI.
+Conformance is verified byte-for-byte against Python `tiktoken`, HuggingFace
+`BertTokenizerFast`, and `t5-small`. Any diff against the committed fixtures fails
+CI. See [Status & conformance](docs/status.md).
 
-### Not supported locally (no public tokenizer)
+### Remotely (no public tokenizer)
 
-**Claude 3 and later** and **Gemini** do not publish their tokenizers. For token
-counts, call the provider's `count_tokens` API directly. The Phase 3 companion
-PHP classes (`Tokenizers\Remote\Anthropic`, `Tokenizers\Remote\Gemini`,
-`Tokenizers\TokenCounter`) wrap those APIs and do not require this extension.
-See the "Remote providers (Claude / Gemini)" section below.
+**Claude 3+** and **Gemini** do not publish their tokenizers — there is no local
+vocabulary to load. The pure-PHP companion (`Tokenizers\Remote\Anthropic`,
+`Tokenizers\Remote\Gemini`, `Tokenizers\TokenCounter`) counts their tokens through
+the providers' official `count_tokens` endpoints. It works **without** building the
+C extension. See the [Remote providers guide](docs/guides/remote-providers.md).
 
-## Requirements
-
-- PHP 8.3 or 8.4 (NTS or ZTS)
-- **`libpcre2-8`** at runtime
-- **`libpcre2-dev`** (or `pcre2-config` on PATH) to build
-
-On macOS with Homebrew: `brew install pcre2`. On Debian/Ubuntu:
-`apt-get install libpcre2-dev`.
-
-## Installation
-
-### Via PECL
+## Install
 
 ```bash
-pecl install tokenizers
+phpize && ./configure && make && make install
 ```
 
-### Via PIE
-
-PIE installs by Composer package name (`vendor/package`), not the extension name:
-
-```bash
-pie install webrek/tokenizers
-```
-
-Until the package is published to Packagist, install the dev version from the
-repository (add the VCS repo to your global PIE config, or):
-
-```bash
-pie install webrek/tokenizers:*@dev
-```
-
-PIE runs `phpize && ./configure --enable-tokenizers && make && make install`
-for you; the `php-ext` manifest is in `composer.json`. **Note:** end-to-end PIE
-install has not yet been verified on a clean machine — see `From source` below
-for the known-good path.
-
-### From source
-
-```bash
-phpize
-./configure
-make
-make install
-```
-
-Then enable the extension in your `php.ini`:
+Then enable it in your `php.ini`:
 
 ```ini
 extension=tokenizers
 ```
 
-## Usage
+Verify:
 
-### OO API — known OpenAI encodings
+```bash
+php -m | grep tokenizers          # → tokenizers
+```
+
+`pecl install tokenizers` and `pie install webrek/tokenizers` are also supported.
+Full instructions, requirements (`libpcre2`), and troubleshooting are in
+**[Getting Started](docs/getting-started.md)**.
+
+## Quick start
 
 ```php
 use Tokenizers\Encoding;
 
-// Downloads and checksum-verifies the vocab on first use; cached for subsequent calls.
-$enc = Encoding::load('cl100k_base');   // or 'o200k_base'
-
-$n   = $enc->countTokens($prompt);     // cheapest: count without building the id array
-$ids = $enc->encode($prompt);          // => int[]
-$str = $enc->decode($ids);             // => string (same bytes as $prompt for plain text)
-
-echo $enc->vocabSize();   // 100277 for cl100k_base
-echo $enc->name();        // null (name tracking not implemented in v0.1)
-```
-
-### OO API — HuggingFace BPE models
-
-```php
-use Tokenizers\Encoding;
-
-$enc  = Encoding::fromHuggingFace('/path/to/tokenizer.json');
-$ids  = $enc->encode('Hello, world!');
-$text = $enc->decode($ids);
-```
-
-### Special tokens
-
-```php
-use Tokenizers\{Encoding, Bpe};
-
+// OpenAI encoding (vocab downloads + caches on first use)
 $enc = Encoding::load('cl100k_base');
+$n   = $enc->countTokens($prompt);     // count without allocating the id array
+$ids = $enc->encode($prompt);          // int[]
+$str = $enc->decode($ids);             // round-trips for plain text
 
-// By default all special tokens are disallowed in the input string
-// (raises TokenizerException if they appear). To allow specific ones:
-$ids = $enc->encode('<|endoftext|> hello', allowedSpecial: ['<|endoftext|>']);
+// HuggingFace model — returns Bpe | WordPiece | Unigram by model type
+$bert = Encoding::fromHuggingFace('/path/to/bert/tokenizer.json');
+$t5   = Encoding::fromHuggingFace('/path/to/t5/tokenizer.json');
 
-// To allow every special token:
-$ids = $enc->encode('<|endoftext|> hello', allowedSpecial: 'all');
-```
-
-### Procedural API
-
-```php
-use Tokenizers\{Bpe, Encoding};
-
-$bpe  = Encoding::load('cl100k_base');    // returns a Bpe instance
-
-$ids  = tokenizers_encode($bpe, $text);
-$n    = tokenizers_count($bpe, $text);
-$str  = tokenizers_decode($bpe, $ids);
-
-echo tokenizers_version();       // "0.1.0"
-echo tokenizers_cache_count();   // number of models loaded in process cache
-```
-
-### Low-level constructors (advanced)
-
-```php
-use Tokenizers\Bpe;
-
-// Load directly from a .tiktoken file you already have on disk
-$bpe = Bpe::fromTiktokenFile('/path/to/cl100k_base.tiktoken', $pattern, $specialTokens);
-
-// Build from a vocab array and merge list (used internally by Encoding::fromHuggingFace)
-$bpe = Bpe::fromVocab($tokenBytesToId, $merges, $pattern, $specialTokens);
-```
-
-### Error handling
-
-```php
-use Tokenizers\{Encoding, TokenizerException};
-
-try {
-    $enc = Encoding::load('gpt2');   // not a built-in encoding
-} catch (TokenizerException $e) {
-    echo $e->getMessage();           // "unknown encoding: gpt2"
-}
-```
-
-`\Tokenizers\TokenizerException` extends `\RuntimeException`.
-
-## Remote providers (Claude / Gemini)
-
-Claude 3 and later, and Gemini, do not publish their tokenizers. There is no
-local vocabulary file to load — token counts for those models require a live
-call to the provider's API and an API key. Anthropic explicitly advises against
-using tiktoken or any other local approximation for Claude; this companion is
-the supported path.
-
-The three classes live in `php/Tokenizers/Remote/` and are plain PHP — they do
-not require building the C extension, but they do require `ext-curl` and
-`ext-json`. They intentionally do **not** pull in `anthropic-ai/sdk` or any
-HTTP library (Guzzle, etc.); raw curl only.
-
-### Installation (remote classes only)
-
-The remote classes are autoloaded if you use Composer, or you can require them
-manually:
-
-```php
-require '/path/to/php/Tokenizers/Remote/Http.php';          // Transport interface
-require '/path/to/php/Tokenizers/Remote/CurlTransport.php';
-require '/path/to/php/Tokenizers/Remote/Anthropic.php';
-require '/path/to/php/Tokenizers/Remote/Gemini.php';
-// For the unified facade:
-require '/path/to/php/Tokenizers/TokenCounter.php';
-```
-
-### Environment variables
-
-| Provider | Env var(s) | Constructor override |
-|---|---|---|
-| Anthropic | `ANTHROPIC_API_KEY` | `new Anthropic(apiKey: '...')` |
-| Gemini | `GEMINI_API_KEY` then `GOOGLE_API_KEY` | `new Gemini(apiKey: '...')` |
-
-The constructor argument takes priority over the environment; the key is read
-from the environment at construction time if the argument is omitted or `null`.
-A missing key throws `\Tokenizers\TokenizerException` at call time, not at
-construction time.
-
-### Usage
-
-**Anthropic** — count tokens for one user turn:
-
-```php
-use Tokenizers\Remote\Anthropic;
-
-$n = (new Anthropic(apiKey: 'sk-ant-...'))->countTokens('claude-opus-4-8', 'Hello, world!');
-// or read key from ANTHROPIC_API_KEY:
-$n = (new Anthropic())->countTokens('claude-opus-4-8', 'Hello, world!');
-echo $n; // => positive int (exact as of the model's current tokenizer)
-```
-
-Pass a full messages array and an optional system prompt:
-
-```php
-$n = (new Anthropic())->countTokens(
-    'claude-opus-4-8',
-    [['role' => 'user', 'content' => 'Hello'], ['role' => 'assistant', 'content' => 'Hi!']],
-    system: 'You are a helpful assistant.',
-);
-```
-
-**Gemini** — count tokens for a text prompt:
-
-```php
-use Tokenizers\Remote\Gemini;
-
-$n = (new Gemini())->countTokens('gemini-1.5-flash', 'Hello, world!');
-// GEMINI_API_KEY (or GOOGLE_API_KEY) must be set, or pass apiKey: '...'
-echo $n; // => positive int
-```
-
-**TokenCounter** — unified facade that routes to the right backend by model name:
-
-```php
+// One facade for local + remote, routed by model name
 use Tokenizers\TokenCounter;
-
-$tc = new TokenCounter();                            // lazy-initialises backends from env vars
-echo $tc->count('claude-opus-4-8', $text);          // => remote Anthropic call
-echo $tc->count('gemini-1.5-flash', $text);         // => remote Gemini call
-echo $tc->count('cl100k_base', $text);              // => local BPE (no network, no key needed)
+$tc = new TokenCounter();
+$tc->count('cl100k_base',     $text);  // local BPE, no key
+$tc->count('claude-opus-4-8', $text);  // remote Anthropic (needs ANTHROPIC_API_KEY)
+$tc->count('gemini-1.5-flash',$text);  // remote Gemini   (needs GEMINI_API_KEY)
 ```
 
-`TokenCounter::route(string $model): string` returns `'anthropic'`, `'gemini'`,
-or `'local'` without making any network call — useful for branching logic.
+## Documentation
 
-### API reference: remote classes
-
-#### `\Tokenizers\Remote\Anthropic`
-
-```
-__construct(
-    ?string   $apiKey    = null,    // falls back to ANTHROPIC_API_KEY env var
-    ?Transport $transport = null,   // defaults to CurlTransport; injectable for testing
-    string    $version   = '2023-06-01',
-    int       $timeout   = 30,
-): void
-
-countTokens(string $model, string|array $messages, ?string $system = null): int
-```
-
-`$messages` can be a plain string (treated as one user turn) or a full
-`[['role' => ..., 'content' => ...], ...]` array. Throws
-`\Tokenizers\TokenizerException` on missing key, non-2xx response, or malformed
-response body.
-
-#### `\Tokenizers\Remote\Gemini`
-
-```
-__construct(
-    ?string    $apiKey    = null,   // falls back to GEMINI_API_KEY, then GOOGLE_API_KEY
-    ?Transport $transport = null,
-    int        $timeout   = 30,
-): void
-
-countTokens(string $model, string $text): int
-```
-
-The `$model` argument accepts both `'gemini-1.5-flash'` and
-`'models/gemini-1.5-flash'` — the leading `models/` prefix is normalised
-automatically.
-
-#### `\Tokenizers\TokenCounter`
-
-```
-__construct(?Anthropic $anthropic = null, ?Gemini $gemini = null): void
-
-static route(string $model): string   // 'anthropic' | 'gemini' | 'local'
-
-count(string $model, string $text, ?string $provider = null): int
-```
-
-Pass `$provider` explicitly to override the auto-routing (e.g. `'anthropic'`,
-`'gemini'`, or `'local'`). Throws `\Tokenizers\TokenizerException` for unknown
-providers.
-
-### Honest boundaries
-
-- **Network and key required.** There is no offline path for Claude or Gemini
-  token counts.
-- **Exact only as of the provider's current tokenizer.** Anthropic and Google
-  can update their internal tokenizers; this library always reflects whatever
-  the live API returns.
-- **Dependency.** `ext-curl` (built-in on most PHP installations) and
-  `ext-json`. No Composer packages, no vendored HTTP library.
-
-### If you already use `anthropic-ai/sdk`
-
-Callers who already pull in `anthropic-ai/sdk` can call
-`$client->messages->countTokens(...)` directly — there is no need to also use
-this companion. The companion exists for projects that want a zero-dependency
-path (raw curl only) or that need unified routing across Anthropic, Gemini, and
-local BPE models via `TokenCounter`.
-
-## Vocabulary caching
-
-Built-in encodings are downloaded from OpenAI's public CDN on first use and
-checksum-verified. They are **never redistributed** with the extension. The cache
-location is selected in this order:
-
-1. `$TOKENIZERS_CACHE_DIR/tokenizers`
-2. `$XDG_CACHE_HOME/tokenizers`
-3. `$HOME/.cache/tokenizers`
-4. `sys_get_temp_dir()/tokenizers`
-
-Once a process loads a model, it stays in a process-global cache and is reused
-for every subsequent request in that worker — this is the primary memory win.
-
-## API reference
-
-### `\Tokenizers\Encoding` (PHP shim)
-
-| Method | Description |
+| Guide | What it covers |
 |---|---|
-| `Encoding::load(string $name): Bpe` | Download/cache a known encoding (`cl100k_base`, `o200k_base`) and return a `Bpe` instance |
-| `Encoding::fromHuggingFace(string $jsonPath): Bpe` | Parse a HuggingFace `tokenizer.json` BPE file and return a `Bpe` instance |
-| `Encoding::cacheDir(): string` | Return the resolved cache directory path |
+| **[Getting Started](docs/getting-started.md)** | Install, enable, verify, first tokenization, troubleshooting |
+| **[Loading models](docs/guides/loading-models.md)** | OpenAI / HuggingFace BPE, WordPiece, Unigram, options, the cache |
+| **[Estimating LLM costs](docs/guides/estimating-costs.md)** | Budget spend, fit context windows, track usage per client |
+| **[Remote providers (Claude / Gemini)](docs/guides/remote-providers.md)** | Counting tokens via the provider APIs |
+| **[API reference](docs/api-reference.md)** | Every class, method, and function |
+| **[Status & limitations](docs/status.md)** | What's verified, conformance results, honest limits, roadmap |
 
-### `\Tokenizers\Bpe` (C class)
+## Project status
 
-| Method | Description |
-|---|---|
-| `Bpe::fromTiktokenFile(string $path, string $pattern, array $specialTokens = []): Bpe` | Load from a `.tiktoken` vocab file |
-| `Bpe::fromVocab(array $tokenBytesToId, array $merges, string $pattern, array $specialTokens = []): Bpe` | Build from raw vocab + merge list |
-| `encode(string $text, array\|string $allowedSpecial = [], array\|string $disallowedSpecial = "all"): array` | Encode text to token IDs |
-| `countTokens(string $text): int` | Count tokens without allocating the ID array |
-| `decode(array $ids): string` | Decode token IDs to text |
-| `decodeSingle(int $id): string` | Decode a single token ID |
-| `vocabSize(): int` | Return the vocabulary size |
-| `name(): ?string` | Return the encoding name, or `null` if not set |
+`v0.1.0`, early but functional. All three planned phases are complete and merged:
 
-### Procedural functions
+- **BPE** (cl100k_base, o200k_base, HuggingFace BPE) — byte-exact, O(n log n) merge.
+- **WordPiece** (BERT) and **Unigram** (T5/SentencePiece) — byte-exact.
+- **Claude / Gemini API companion** — pure PHP, standalone.
 
-| Function | Description |
-|---|---|
-| `tokenizers_encode(Bpe $t, string $text, array $allowedSpecial = [], array\|string $disallowedSpecial = "all"): array` | Encode text to token IDs |
-| `tokenizers_decode(Bpe $t, array $ids): string` | Decode token IDs to text |
-| `tokenizers_count(Bpe $t, string $text): int` | Count tokens |
-| `tokenizers_cache_count(): int` | Number of models currently held in the process-global cache |
-| `tokenizers_version(): string` | Extension version string |
-
-The constant `\Tokenizers\VERSION` (string) holds the same version value.
-
-## Roadmap
-
-- **Phase 1 (current — v0.1.0):** Byte-level BPE, `cl100k_base`, `o200k_base`,
-  HuggingFace BPE `tokenizer.json`. O(n log n) merge. Tiktoken-conformant.
-- **Phase 2:** WordPiece and Unigram algorithms → BERT, T5, and related models.
-- **Phase 3 (done):** Claude / Gemini API companion — a pure-PHP library that
-  calls the provider `count_tokens` endpoints; does not require this extension.
-  See "Remote providers" section above.
+Honest caveats live in [Status & limitations](docs/status.md) (normalization scope,
+PIE install not yet verified end-to-end, remote counting needs a network call + key).
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
-
-Vocabulary files for built-in encodings are downloaded from OpenAI's public CDN
-at runtime and are subject to OpenAI's terms of service. They are not bundled
-with this extension.
+Apache-2.0 — see [LICENSE](LICENSE). Vocabulary files for built-in encodings are
+downloaded from OpenAI's public CDN at runtime, checksum-verified, and **not**
+redistributed with the extension.
