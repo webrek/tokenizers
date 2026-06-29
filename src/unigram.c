@@ -25,19 +25,17 @@ int tk_unigram_encode(const tk_model *m,const double *scores,const char *text,si
     for(size_t i=0;i<n;i++){
         if(best[i]==-DBL_MAX) continue;
         if(!boundary(buf,i)) continue;
-        int matched=0;
         size_t jmax = i+o->max_piece_len; if(jmax>n) jmax=n;
         for(size_t j=i+1;j<=jmax;j++){
             if(j<n && !boundary(buf,j)) continue; /* only at codepoint boundaries */
             uint32_t id=tk_model_rank(m,(const uint8_t*)(buf+i),j-i);
             if(id==TK_RANK_MAX) continue;
             double s=best[i]+scores[id];
-            if(s>best[j]){ best[j]=s; bp_i[j]=i; bp_id[j]=id; matched=1; }
+            if(s>best[j]){ best[j]=s; bp_i[j]=i; bp_id[j]=id; }
         }
-        /* unk fallback: one codepoint */
+        /* unk fallback: always relax one codepoint so every position stays reachable */
         size_t e=i+1; while(e<n && !boundary(buf,e)) e++;
         if(best[i]+o->unk_score > best[e]){ best[e]=best[i]+o->unk_score; bp_i[e]=i; bp_id[e]=o->unk_id; }
-        (void)matched;
     }
     /* backtrack */
     uint32_t *rev=malloc((n+1)*sizeof(uint32_t)); size_t rn=0;

@@ -183,6 +183,8 @@ final class Encoding
                 }
                 // Support both old-style add_prefix_space (bool) and new-style prepend_scheme ('always'/'first'/'never').
                 if (isset($metaspace['prepend_scheme'])) {
+                    // 'always' and 'first' both prepend ▁ here (v1 encodes a single span,
+                    // so 'first' is equivalent to 'always'); only 'never' disables it.
                     $opts['addPrefixSpace'] = ($metaspace['prepend_scheme'] !== 'never');
                 } else {
                     $opts['addPrefixSpace'] = (bool)($metaspace['add_prefix_space'] ?? true);

@@ -142,6 +142,9 @@ PHP_METHOD(Tokenizers_Unigram, fromVocab) {
     /* Compute unk_score = min(non-zero piece scores) - 10.0, matching HF tokenizers (Rust).
        Special tokens (<unk>, <pad>, </s>) have score 0.0 in SentencePiece models; exclude them
        so the penalty is anchored to the actual worst regular-piece score, not the sentinel value. */
+    /* Regular SentencePiece pieces have negative log-prob scores; entries with score
+       exactly 0.0 are the specials (<pad>/</s>/<unk>), excluded so the penalty anchors
+       to the worst real piece. */
     double min_nz = 0.0; int found_nz = 0;
     for (uint32_t k = 0; k < (uint32_t)n_pieces; k++) {
         if (scores[k] != 0.0 && (!found_nz || scores[k] < min_nz)) {
