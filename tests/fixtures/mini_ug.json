@@ -1,0 +1,22 @@
+{
+  "normalizer": null,
+  "pre_tokenizer": {
+    "type": "Metaspace",
+    "replacement": "▁",
+    "add_prefix_space": true
+  },
+  "model": {
+    "type": "Unigram",
+    "unk_id": 7,
+    "vocab": [
+      ["▁he", -1.0],
+      ["llo",  -1.0],
+      ["▁",   -3.0],
+      ["h",   -2.0],
+      ["e",   -2.0],
+      ["l",   -2.0],
+      ["o",   -2.0],
+      ["<unk>", -10.0]
+    ]
+  }
+}

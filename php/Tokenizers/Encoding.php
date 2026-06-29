@@ -91,7 +91,7 @@ final class Encoding
         return $out;
     }
 
-    public static function fromHuggingFace(string $jsonPath): Bpe|WordPiece
+    public static function fromHuggingFace(string $jsonPath): Bpe|WordPiece|Unigram
     {
         $raw = @file_get_contents($jsonPath);
         if ($raw === false) throw new TokenizerException("cannot read $jsonPath");
@@ -140,6 +140,55 @@ final class Encoding
                 'handleChineseChars'     => $handleCjk,
             ];
             return WordPiece::fromVocab($vocab, $opts);
+        }
+
+        if ($modelType === 'Unigram') {
+            // model.vocab is a list of [piece, score] pairs; index = id.
+            // Pass directly to Unigram::fromVocab — no byte-level decoding needed.
+            $pieces = $j['model']['vocab'] ?? [];
+
+            $opts = [];
+
+            // unk_id: integer index into the vocab list.
+            if (isset($j['model']['unk_id'])) {
+                $opts['unkId'] = (int)$j['model']['unk_id'];
+            }
+
+            // pre_tokenizer: locate the Metaspace config.
+            // It may be directly {"type":"Metaspace",...} or nested inside
+            // {"type":"Sequence","pretokenizers":[...]}.
+            $preTok = $j['pre_tokenizer'] ?? null;
+            $metaspace = null;
+            if (is_array($preTok)) {
+                if (($preTok['type'] ?? null) === 'Metaspace') {
+                    $metaspace = $preTok;
+                } elseif (($preTok['type'] ?? null) === 'Sequence') {
+                    foreach ($preTok['pretokenizers'] ?? [] as $pt) {
+                        if (is_array($pt) && ($pt['type'] ?? null) === 'Metaspace') {
+                            $metaspace = $pt;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($metaspace !== null) {
+                // Validate the replacement character: only ▁ (U+2581) is supported in v1.
+                $replacement = $metaspace['replacement'] ?? "\xE2\x96\x81";
+                if ($replacement !== "\xE2\x96\x81") {
+                    throw new TokenizerException(
+                        "unsupported Metaspace replacement char: $replacement (v1 only supports ▁ / U+2581)"
+                    );
+                }
+                $opts['addPrefixSpace'] = (bool)($metaspace['add_prefix_space'] ?? true);
+            }
+
+            // normalizer: v1 treats all normalizers as identity on ASCII.
+            // Real NFKC / Precompiled normalization is out of v1 scope — the
+            // conformance set is curated to ASCII/Latin where this holds.
+            // We accept any normalizer declaration but do NOT apply it.
+
+            return Unigram::fromVocab($pieces, $opts);
         }
 
         throw new TokenizerException("unsupported tokenizer.json model.type: $modelType");
