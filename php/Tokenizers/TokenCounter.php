@@ -44,7 +44,7 @@ final class TokenCounter
             'anthropic' => ($this->anthropic ?? new Anthropic())->countTokens($model, $text),
             'gemini'    => ($this->gemini    ?? new Gemini())->countTokens($model, $text),
             'local'     => Encoding::load($model)->countTokens($text),
-            default     => throw new TokenizerException("unknown provider for model: $model"),
+            default     => throw new TokenizerException("unknown provider '$provider' for model: $model"),
         };
     }
 }
