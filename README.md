@@ -1,7 +1,5 @@
 # tokenizers
 
-🌐 **Español:** [README.es.md](README.es.md)
-
 > A native PHP extension that counts, encodes, and decodes LLM tokens — **byte-exact** with the reference tokenizers, **fast**, and with **no Rust toolchain**. Plus a pure-PHP companion that counts **Claude** and **Gemini** tokens through their official APIs.
 
 [![CI](https://github.com/webrek/tokenizers/actions/workflows/ci.yml/badge.svg)](https://github.com/webrek/tokenizers/actions/workflows/ci.yml)

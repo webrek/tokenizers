@@ -61,8 +61,9 @@ markdown_extensions:
   - md_in_html
   - toc:
       permalink: true
-      # Unicode-aware slugify (GitHub-style): keeps accented anchors like
-      # "#solución-de-problemas" working, matching how GitHub renders them.
+      # GitHub-style slugify: matches the in-page TOC anchors (headings contain
+      # em dashes and code spans like `\Tokenizers\Remote`), which were authored
+      # against GitHub's slug rules rather than MkDocs' stricter default.
       slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
@@ -86,12 +87,3 @@ nav:
       - Remote providers (Claude / Gemini): guides/remote-providers.md
   - API Reference: api-reference.md
   - Status & Limitations: status.md
-  - Español:
-      - Inicio: es/index.md
-      - Primeros pasos: es/getting-started.md
-      - Guías:
-          - Cargar modelos: es/guides/loading-models.md
-          - Estimar costos de LLM: es/guides/estimating-costs.md
-          - Proveedores remotos (Claude / Gemini): es/guides/remote-providers.md
-      - Referencia de la API: es/api-reference.md
-      - Estado y limitaciones: es/status.md

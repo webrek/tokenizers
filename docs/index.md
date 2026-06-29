@@ -5,8 +5,6 @@
 > pure-PHP companion that counts **Claude** and **Gemini** tokens through their
 > official APIs.
 
-🌐 **Español:** [Inicio](es/index.md)
-
 Think of it as a **scale for AI text**: before you send a prompt to an LLM, weigh it
 in tokens so you know what it will **cost** and whether it **fits** the model's
 context window — all from PHP, exactly, without rebuilding a 26 MB vocabulary on

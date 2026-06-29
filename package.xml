@@ -57,7 +57,6 @@
    <file name="tokenizers_arginfo.h" role="src"/>
    <file name="LICENSE" role="doc"/>
    <file name="README.md" role="doc"/>
-   <file name="README.es.md" role="doc"/>
    <dir name="src">
     <file name="base64.c" role="src"/>
     <file name="base64.h" role="src"/>
