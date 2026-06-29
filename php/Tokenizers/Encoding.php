@@ -57,6 +57,62 @@ final class Encoding
         }
     }
 
+    /** GPT-2 byte-level: map of unicode codepoint => raw byte. */
+    private static function byteDecoder(): array
+    {
+        static $map = null;
+        if ($map !== null) return $map;
+        $bs = array_merge(range(0x21, 0x7E), range(0xA1, 0xAC), range(0xAE, 0xFF));
+        $cs = $bs; $n = 0;
+        for ($b = 0; $b < 256; $b++) { if (!in_array($b, $bs, true)) { $bs[] = $b; $cs[] = 256 + $n; $n++; } }
+        $map = [];
+        foreach ($bs as $i => $b) $map[$cs[$i]] = $b;
+        return $map;
+    }
+
+    private static function utf8ord(string $ch): int
+    {
+        $ord = unpack('N', str_pad(mb_convert_encoding($ch, 'UTF-32BE', 'UTF-8'), 4, "\0", STR_PAD_LEFT));
+        return $ord[1];
+    }
+
+    private static function tokenCharsToBytes(string $token): string
+    {
+        $dec = self::byteDecoder();
+        $out = '';
+        // iterate unicode codepoints of $token
+        $cps = preg_split('//u', $token, -1, PREG_SPLIT_NO_EMPTY);
+        $useIntl = extension_loaded('intl') && class_exists('IntlChar');
+        foreach ($cps as $ch) {
+            $cp = $useIntl ? (\IntlChar::ord($ch) ?? self::utf8ord($ch)) : self::utf8ord($ch);
+            if (!isset($dec[$cp])) throw new TokenizerException("vocab token char U+" . dechex($cp) . " not in byte map");
+            $out .= chr($dec[$cp]);
+        }
+        return $out;
+    }
+
+    public static function fromHuggingFace(string $jsonPath): Bpe
+    {
+        $raw = @file_get_contents($jsonPath);
+        if ($raw === false) throw new TokenizerException("cannot read $jsonPath");
+        $j = json_decode($raw, true);
+        if (!is_array($j) || ($j['model']['type'] ?? null) !== 'BPE') {
+            throw new TokenizerException("unsupported tokenizer.json (only model.type=BPE is supported in v1)");
+        }
+        $vocab = $j['model']['vocab'] ?? [];
+        $rawVocab = [];
+        foreach ($vocab as $token => $id) {
+            $rawVocab[self::tokenCharsToBytes((string)$token)] = (int)$id;
+        }
+        $specials = [];
+        foreach (($j['added_tokens'] ?? []) as $t) {
+            if (!empty($t['special'])) $specials[(string)$t['content']] = (int)$t['id'];
+        }
+        // ByteLevel BPE uses the GPT-2 split regex
+        $pattern = "(?i:'s|'t|'re|'ve|'m|'ll|'d)| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+";
+        return Bpe::fromVocab($rawVocab, $j['model']['merges'] ?? [], $pattern, $specials);
+    }
+
     public static function load(string $name): Bpe
     {
         $reg = self::registry();

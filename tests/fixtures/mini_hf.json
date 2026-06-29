@@ -1,0 +1,3 @@
+{"model":{"type":"BPE","vocab":{"a":0,"b":1,"ab":2},"merges":["a b"]},
+ "pre_tokenizer":{"type":"ByteLevel"},
+ "added_tokens":[{"id":2,"content":"<|x|>","special":true}]}

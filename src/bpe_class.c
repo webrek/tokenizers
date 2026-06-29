@@ -156,8 +156,34 @@ PHP_METHOD(Tokenizers_Bpe, name) {
     if (o->name) RETURN_STRING(o->name); RETURN_NULL();
 }
 
-/* fromVocab implemented in Task 13 */
-PHP_METHOD(Tokenizers_Bpe, fromVocab) { tk_throw("fromVocab not yet implemented"); RETURN_THROWS(); }
+PHP_METHOD(Tokenizers_Bpe, fromVocab) {
+    zval *vocab, *merges = NULL, *specials = NULL; char *pattern; size_t pat_len;
+    ZEND_PARSE_PARAMETERS_START(3, 4)
+        Z_PARAM_ARRAY(vocab) Z_PARAM_ARRAY(merges) Z_PARAM_STRING(pattern, pat_len)
+        Z_PARAM_OPTIONAL Z_PARAM_ARRAY(specials)
+    ZEND_PARSE_PARAMETERS_END();
+    (void)merges; /* v1: id order encodes merge priority */
+
+    tk_model *m = tk_model_new(zend_hash_num_elements(Z_ARRVAL_P(vocab)));
+    zend_string *k; zval *v;
+    ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(vocab), k, v) {
+        if (!k) continue;
+        tk_model_add(m, (const uint8_t*)ZSTR_VAL(k), ZSTR_LEN(k), (uint32_t)zval_get_long(v));
+    } ZEND_HASH_FOREACH_END();
+
+    if (tk_model_set_pattern(m, pattern) != 0) { tk_model_free(m); tk_throw("invalid pre-tokenizer pattern"); RETURN_THROWS(); }
+    if (specials) {
+        zend_string *sk; zval *sv;
+        ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(specials), sk, sv) {
+            if (!sk) continue;
+            tk_model_add_special(m, ZSTR_VAL(sk), ZSTR_LEN(sk), (uint32_t)zval_get_long(sv));
+        } ZEND_HASH_FOREACH_END();
+    }
+
+    object_init_ex(return_value, tokenizers_bpe_ce);
+    tk_bpe_obj *o = tk_bpe_from(Z_OBJ_P(return_value));
+    o->model = m; o->owns = 1; o->name = NULL;
+}
 
 /* procedural API helpers */
 static const tk_model *bpe_model_arg(zval *z) {
