@@ -68,13 +68,21 @@ Salida esperada: `0.1.0`
 
 ## Instalación mediante PECL
 
-Si tienes `pecl` instalado:
+El paquete fuente se adjunta a cada release de GitHub. Hasta que la extensión
+se publique en `pecl.php.net`, instálala directamente desde el tarball del
+release:
+
+```bash
+pecl install https://github.com/webrek/tokenizers/releases/download/v0.1.0/tokenizers-0.1.0.tgz
+```
+
+Una vez publicada en el canal PECL, también funcionará la forma corta:
 
 ```bash
 pecl install tokenizers
 ```
 
-Luego añade `extension=tokenizers` a tu `php.ini` como se indica arriba.
+`pecl install` añade `extension=tokenizers` a tu `php.ini` automáticamente.
 
 ---
 
