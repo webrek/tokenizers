@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define TK_RANK_MAX 0xFFFFFFFFu
+#define TK_MAX_VOCAB_ID 0x3FFFFFu  /* 4,194,303 — well above any real vocab; bounds id-array size */
 
 typedef struct tk_model tk_model;
 

@@ -166,15 +166,19 @@ PHP_METHOD(Tokenizers_Bpe, fromVocab) {
 
     tk_model *m = tk_model_new(zend_hash_num_elements(Z_ARRVAL_P(vocab)));
     zend_string *k; zend_ulong idx; zval *v;
+    int vocab_err = 0;
     ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(vocab), idx, k, v) {
+        int rc;
         if (k) {
-            tk_model_add(m, (const uint8_t*)ZSTR_VAL(k), ZSTR_LEN(k), (uint32_t)zval_get_long(v));
+            rc = tk_model_add(m, (const uint8_t*)ZSTR_VAL(k), ZSTR_LEN(k), (uint32_t)zval_get_long(v));
         } else {
             char buf[21];
             int n = snprintf(buf, sizeof(buf), ZEND_ULONG_FMT, idx);
-            tk_model_add(m, (const uint8_t*)buf, (size_t)n, (uint32_t)zval_get_long(v));
+            rc = tk_model_add(m, (const uint8_t*)buf, (size_t)n, (uint32_t)zval_get_long(v));
         }
+        if (rc == -1) { vocab_err = 1; break; }
     } ZEND_HASH_FOREACH_END();
+    if (vocab_err) { tk_model_free(m); tk_throw("vocab token id out of range"); RETURN_THROWS(); }
 
     if (tk_model_set_pattern(m, pattern) != 0) { tk_model_free(m); tk_throw("invalid pre-tokenizer pattern"); RETURN_THROWS(); }
     if (specials) {

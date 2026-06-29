@@ -54,7 +54,12 @@ size_t tk_bpe_merge(const tk_model *m, const uint8_t *piece, size_t len, uint32_
 
 void tk_ids_init(tk_ids *v) { v->data = NULL; v->len = 0; v->cap = 0; }
 void tk_ids_push(tk_ids *v, uint32_t id) {
-    if (v->len == v->cap) { v->cap = v->cap ? v->cap * 2 : 64; v->data = realloc(v->data, v->cap * sizeof(uint32_t)); }
+    if (v->len == v->cap) {
+        size_t ncap = v->cap ? v->cap * 2 : 64;
+        uint32_t *tmp = realloc(v->data, ncap * sizeof(uint32_t));
+        if (!tmp) return;
+        v->data = tmp; v->cap = ncap;
+    }
     v->data[v->len++] = id;
 }
 void tk_ids_free(tk_ids *v) { free(v->data); v->data = NULL; v->len = v->cap = 0; }
@@ -63,7 +68,11 @@ typedef struct { const tk_model *m; const uint8_t *text; tk_ids *out; uint32_t *
 
 static void enc_emit(void *ud, size_t s, size_t e) {
     enc_ctx *c = ud; size_t plen = e - s;
-    if (plen > c->scrcap) { c->scrcap = plen; c->scr = realloc(c->scr, plen * sizeof(uint32_t)); }
+    if (plen > c->scrcap) {
+        uint32_t *tmp = realloc(c->scr, plen * sizeof(uint32_t));
+        if (!tmp) return;
+        c->scr = tmp; c->scrcap = plen;
+    }
     size_t n = tk_bpe_merge(c->m, c->text + s, plen, c->scr);
     if (c->out) for (size_t i = 0; i < n; i++) tk_ids_push(c->out, c->scr[i]);
     c->count += n;
@@ -150,7 +159,12 @@ int tk_decode(const tk_model *m, const uint32_t *ids, size_t n,
             if (!sb) { free(buf); if (err) { const char *p="invalid token id in decode"; char *e=malloc(strlen(p)+1); strcpy(e,p); *err=e; } return -1; }
             b = (const uint8_t*)sb; blen = slen;
         }
-        if (o + blen > cap) { while (o + blen > cap) cap *= 2; buf = realloc(buf, cap); }
+        if (o + blen > cap) {
+            while (o + blen > cap) cap *= 2;
+            uint8_t *tmp = realloc(buf, cap);
+            if (!tmp) { free(buf); if (err) { const char *p = "out of memory"; char *e = malloc(strlen(p)+1); if (e) strcpy(e,p); *err = e; } return -1; }
+            buf = tmp;
+        }
         memcpy(buf + o, b, blen); o += blen;
     }
     *out = buf; *out_len = o;

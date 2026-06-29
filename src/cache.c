@@ -34,7 +34,17 @@ const tk_model *tk_cache_get_or_load(const char *key, tk_loader_fn loader, void 
     char *lerr = NULL;
     tk_model *nm = loader(ud, &lerr);
     if (!nm) { TK_UNLOCK(); if (err) *err = lerr; else free(lerr); return NULL; }
-    if (g_count == g_cap) { g_cap = g_cap ? g_cap * 2 : 8; g_entries = realloc(g_entries, g_cap * sizeof(entry)); }
+    if (g_count == g_cap) {
+        size_t ncap = g_cap ? g_cap * 2 : 8;
+        entry *tmp = realloc(g_entries, ncap * sizeof(entry));
+        if (!tmp) {
+            TK_UNLOCK();
+            if (err) { const char *p = "out of memory"; char *e = malloc(strlen(p)+1); if (e) strcpy(e,p); *err = e; }
+            tk_model_free(nm);
+            return NULL;
+        }
+        g_entries = tmp; g_cap = ncap;
+    }
     g_entries[g_count].key = malloc(strlen(key) + 1); strcpy(g_entries[g_count].key, key);
     g_entries[g_count].model = nm; g_count++;
     TK_UNLOCK();

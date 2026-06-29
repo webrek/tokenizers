@@ -30,7 +30,11 @@ tk_model *tk_load_tiktoken_file(const char *path, const char *pattern, char **er
             if (err) *err = dup_err("invalid base64 in tiktoken file"); return NULL;
         }
         uint32_t rank = (uint32_t)strtoul(sp + 1, NULL, 10);
-        tk_model_add(m, buf, outlen, rank);
+        if (tk_model_add(m, buf, outlen, rank) == -1) {
+            free(buf); free(line); fclose(f); tk_model_free(m);
+            if (err) *err = dup_err("token id out of range in tiktoken file");
+            return NULL;
+        }
     }
     free(buf); free(line); fclose(f);
     /* store pattern string on the model; compiled in Task 5 */

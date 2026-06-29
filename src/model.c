@@ -46,13 +46,18 @@ static void rehash(tk_model *m) {
     free(m->tab); m->tab = nt; m->cap = ncap;
 }
 int tk_model_add(tk_model *m, const uint8_t *bytes, size_t len, uint32_t id) {
+    if (id > TK_MAX_VOCAB_ID) return -1;
     if ((m->count + 1) * 4 >= m->cap * 3) rehash(m);
     tab_insert(m->tab, m->cap, bytes, (uint32_t)len, id);
     m->count++;
     if (id >= m->id_cap) {
         uint32_t nc = m->id_cap; while (nc <= id) nc <<= 1;
-        m->id_bytes = realloc(m->id_bytes, nc * sizeof(uint8_t*));
-        m->id_len = realloc(m->id_len, nc * sizeof(uint32_t));
+        uint8_t **tmp_bytes = realloc(m->id_bytes, nc * sizeof(uint8_t*));
+        if (!tmp_bytes) return -1;
+        m->id_bytes = tmp_bytes;
+        uint32_t *tmp_len = realloc(m->id_len, nc * sizeof(uint32_t));
+        if (!tmp_len) return -1;
+        m->id_len = tmp_len;
         memset(m->id_bytes + m->id_cap, 0, (nc - m->id_cap) * sizeof(uint8_t*));
         m->id_cap = nc;
     }
