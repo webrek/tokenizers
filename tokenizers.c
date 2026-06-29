@@ -8,6 +8,7 @@
 #include "src/cache.h"
 
 extern void tk_register_bpe_class(void);
+extern void tk_register_wp_class(void);
 
 PHP_FUNCTION(tokenizers_version)
 {
@@ -28,6 +29,7 @@ PHP_MINIT_FUNCTION(tokenizers)
     register_tokenizers_symbols(module_number);
     tk_cache_init();
     tk_register_bpe_class();
+    tk_register_wp_class();
     return SUCCESS;
 }
 

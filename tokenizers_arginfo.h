@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: b0e5a212f0967105170b4d13ea403229b4a3741c */
+ * Stub hash: 57b317eabf175ce809331bef52c7747d6c8ca8a8 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_version, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -24,6 +24,25 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_count, 0, 2, IS_LONG,
 	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Tokenizers_WordPiece_fromVocab, 0, 1, Tokenizers\\WordPiece, 0)
+	ZEND_ARG_TYPE_INFO(0, tokenToId, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, opts, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_WordPiece_encode, 0, 1, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_WordPiece_countTokens, 0, 1, IS_LONG, 0)
+	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_WordPiece_decode, 0, 1, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO(0, ids, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Tokenizers_WordPiece_vocabSize arginfo_tokenizers_cache_count
+
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Tokenizers_Bpe_fromTiktokenFile, 0, 2, Tokenizers\\Bpe, 0)
 	ZEND_ARG_TYPE_INFO(0, path, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, pattern, IS_STRING, 0)
@@ -43,13 +62,9 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_Bpe_encode, 0, 
 	ZEND_ARG_TYPE_MASK(0, disallowedSpecial, MAY_BE_ARRAY|MAY_BE_STRING, "\"all\"")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_Bpe_countTokens, 0, 1, IS_LONG, 0)
-	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Tokenizers_Bpe_countTokens arginfo_class_Tokenizers_WordPiece_countTokens
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_Bpe_decode, 0, 1, IS_STRING, 0)
-	ZEND_ARG_TYPE_INFO(0, ids, IS_ARRAY, 0)
-ZEND_END_ARG_INFO()
+#define arginfo_class_Tokenizers_Bpe_decode arginfo_class_Tokenizers_WordPiece_decode
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_Bpe_decodeSingle, 0, 1, IS_STRING, 0)
 	ZEND_ARG_TYPE_INFO(0, id, IS_LONG, 0)
@@ -66,6 +81,11 @@ ZEND_FUNCTION(tokenizers_cache_count);
 ZEND_FUNCTION(tokenizers_encode);
 ZEND_FUNCTION(tokenizers_decode);
 ZEND_FUNCTION(tokenizers_count);
+ZEND_METHOD(Tokenizers_WordPiece, fromVocab);
+ZEND_METHOD(Tokenizers_WordPiece, encode);
+ZEND_METHOD(Tokenizers_WordPiece, countTokens);
+ZEND_METHOD(Tokenizers_WordPiece, decode);
+ZEND_METHOD(Tokenizers_WordPiece, vocabSize);
 ZEND_METHOD(Tokenizers_Bpe, fromTiktokenFile);
 ZEND_METHOD(Tokenizers_Bpe, fromVocab);
 ZEND_METHOD(Tokenizers_Bpe, encode);
@@ -87,6 +107,16 @@ static const zend_function_entry ext_functions[] = {
 
 
 static const zend_function_entry class_Tokenizers_TokenizerException_methods[] = {
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_Tokenizers_WordPiece_methods[] = {
+	ZEND_ME(Tokenizers_WordPiece, fromVocab, arginfo_class_Tokenizers_WordPiece_fromVocab, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Tokenizers_WordPiece, encode, arginfo_class_Tokenizers_WordPiece_encode, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_WordPiece, countTokens, arginfo_class_Tokenizers_WordPiece_countTokens, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_WordPiece, decode, arginfo_class_Tokenizers_WordPiece_decode, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_WordPiece, vocabSize, arginfo_class_Tokenizers_WordPiece_vocabSize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -114,6 +144,17 @@ static zend_class_entry *register_class_Tokenizers_TokenizerException(zend_class
 
 	INIT_NS_CLASS_ENTRY(ce, "Tokenizers", "TokenizerException", class_Tokenizers_TokenizerException_methods);
 	class_entry = zend_register_internal_class_ex(&ce, class_entry_RuntimeException);
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_Tokenizers_WordPiece(void)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_NS_CLASS_ENTRY(ce, "Tokenizers", "WordPiece", class_Tokenizers_WordPiece_methods);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
 
 	return class_entry;
 }
