@@ -9,14 +9,19 @@
                              http://pear.php.net/dtd/package-2.0.xsd">
  <name>tokenizers</name>
  <channel>pecl.php.net</channel>
- <summary>Fast BPE tokenizer extension (cl100k_base, p50k, r50k, o200k)</summary>
+ <summary>Native, byte-exact LLM tokenizer (BPE/WordPiece/Unigram) + Claude/Gemini API companion</summary>
  <description>
-  A PHP extension providing a fast Byte-Pair Encoding (BPE) tokenizer
-  compatible with OpenAI encodings (cl100k_base, p50k_base, r50k_base,
-  o200k_base). The core merge loop is implemented in C for performance
-  and uses O(n log n) heap-based merging. Vocabulary files are
-  downloaded and checksum-verified on first use via a bundled PHP shim;
-  they are never redistributed with the package.
+  A native PHP extension (C) that counts, encodes, and decodes LLM tokens,
+  byte-exact with the reference tokenizers. It implements three algorithms:
+  byte-level BPE (tiktoken-compatible cl100k_base and o200k_base, plus
+  HuggingFace tokenizer.json BPE models), WordPiece (BERT family), and
+  Unigram (T5/SentencePiece). The merge loop is O(n log n) and vocabularies
+  are loaded once per worker into a process-global cache. A pure-PHP
+  companion (\Tokenizers\Remote\Anthropic, \Tokenizers\Remote\Gemini,
+  \Tokenizers\TokenCounter) counts Claude and Gemini tokens through the
+  providers' official count_tokens APIs. Vocabulary files are downloaded and
+  checksum-verified on first use; they are never redistributed with the
+  package.
  </description>
  <lead>
   <name>Victor</name>
@@ -36,9 +41,11 @@
  </stability>
  <license uri="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</license>
  <notes>
-  Initial alpha release. Provides \Tokenizers\Bpe (C class) and the
-  \Tokenizers\Encoding PHP shim for known-encoding download and
-  HuggingFace tokenizer.json loading.
+  Initial alpha release. Native BPE (cl100k_base, o200k_base, HuggingFace BPE),
+  WordPiece (BERT) and Unigram (T5/SentencePiece) tokenizers, all byte-exact
+  with their Python references. Includes \Tokenizers\Encoding (download/cache
+  and tokenizer.json loader) and the standalone pure-PHP Claude/Gemini
+  count_tokens companion. Requires libpcre2-8 at runtime.
  </notes>
  <contents>
   <dir name="/">
@@ -50,6 +57,7 @@
    <file name="tokenizers_arginfo.h" role="src"/>
    <file name="LICENSE" role="doc"/>
    <file name="README.md" role="doc"/>
+   <file name="README.es.md" role="doc"/>
    <dir name="src">
     <file name="base64.c" role="src"/>
     <file name="base64.h" role="src"/>
@@ -64,15 +72,32 @@
     <file name="loader_tiktoken.h" role="src"/>
     <file name="model.c" role="src"/>
     <file name="model.h" role="src"/>
+    <file name="normalize.c" role="src"/>
+    <file name="normalize.h" role="src"/>
     <file name="pretok.c" role="src"/>
     <file name="pretok.h" role="src"/>
+    <file name="ug_class.c" role="src"/>
+    <file name="unigram.c" role="src"/>
+    <file name="unigram.h" role="src"/>
+    <file name="wordpiece.c" role="src"/>
+    <file name="wordpiece.h" role="src"/>
+    <file name="wp_class.c" role="src"/>
    </dir>
    <dir name="php">
     <dir name="Tokenizers">
      <file name="Encoding.php" role="php"/>
+     <file name="TokenCounter.php" role="php"/>
+     <file name="TokenizerException.php" role="php"/>
+     <dir name="Remote">
+      <file name="Anthropic.php" role="php"/>
+      <file name="CurlTransport.php" role="php"/>
+      <file name="Gemini.php" role="php"/>
+      <file name="Http.php" role="php"/>
+     </dir>
     </dir>
    </dir>
    <dir name="tests">
+    <file name="_fake_transport.php" role="test"/>
     <file name="001-load.phpt" role="test"/>
     <file name="010-bpe-tiktoken.phpt" role="test"/>
     <file name="011-procedural.phpt" role="test"/>
@@ -81,15 +106,47 @@
     <file name="013-hf.phpt" role="test"/>
     <file name="014-conformance.phpt" role="test"/>
     <file name="015-worstcase.phpt" role="test"/>
+    <file name="020-wordpiece.phpt" role="test"/>
+    <file name="021-wordpiece-hf.phpt" role="test"/>
+    <file name="022-wordpiece-conformance.phpt" role="test"/>
+    <file name="030-unigram.phpt" role="test"/>
+    <file name="031-unigram-hf.phpt" role="test"/>
+    <file name="032-unigram-conformance.phpt" role="test"/>
+    <file name="040-anthropic-count.phpt" role="test"/>
+    <file name="041-gemini-count.phpt" role="test"/>
+    <file name="042-tokencounter-route.phpt" role="test"/>
+    <file name="043-live-smoke.phpt" role="test"/>
+    <dir name="cunit">
+     <file name="run.sh" role="test"/>
+     <file name="test_base64.c" role="test"/>
+     <file name="test_cache.c" role="test"/>
+     <file name="test_encode.c" role="test"/>
+     <file name="test_engine.c" role="test"/>
+     <file name="test_heap.c" role="test"/>
+     <file name="test_loader_tiktoken.c" role="test"/>
+     <file name="test_model.c" role="test"/>
+     <file name="test_normalize.c" role="test"/>
+     <file name="test_pretok.c" role="test"/>
+     <file name="test_unigram.c" role="test"/>
+     <file name="test_wordpiece.c" role="test"/>
+    </dir>
     <dir name="fixtures">
      <file name="fake_cl.tiktoken" role="test"/>
-     <file name="mini_hf.json" role="test"/>
      <file name="mini.tiktoken" role="test"/>
+     <file name="mini_hf.json" role="test"/>
+     <file name="mini_ug.json" role="test"/>
+     <file name="mini_wp.json" role="test"/>
+     <file name="mini_wp_vocab.txt" role="test"/>
     </dir>
     <dir name="reference">
      <file name="generate_fixtures.py" role="test"/>
+     <file name="generate_phase2_fixtures.py" role="test"/>
      <dir name="fixtures">
+      <file name="bert_tokenizer.json" role="test"/>
       <file name="conformance.json" role="test"/>
+      <file name="t5_tokenizer.json" role="test"/>
+      <file name="unigram_conformance.json" role="test"/>
+      <file name="wordpiece_conformance.json" role="test"/>
      </dir>
     </dir>
    </dir>

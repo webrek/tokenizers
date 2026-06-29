@@ -4,6 +4,8 @@
 
 > A native PHP extension that counts, encodes, and decodes LLM tokens — **byte-exact** with the reference tokenizers, **fast**, and with **no Rust toolchain**. Plus a pure-PHP companion that counts **Claude** and **Gemini** tokens through their official APIs.
 
+[![CI](https://github.com/webrek/tokenizers/actions/workflows/ci.yml/badge.svg)](https://github.com/webrek/tokenizers/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-webrek.github.io-blue)](https://webrek.github.io/tokenizers/)
 ![version](https://img.shields.io/badge/version-0.1.0-blue)
 ![php](https://img.shields.io/badge/php-8.3%20%7C%208.4-777bb4)
 ![thread safety](https://img.shields.io/badge/ZTS-supported-success)

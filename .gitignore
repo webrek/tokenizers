@@ -9,6 +9,9 @@
 src/.libs/
 modules/
 
+# PECL package tarballs (built from package.xml; attached to GitHub releases)
+*.tgz
+
 # Autoconf / configure outputs
 config.h
 config.h.in

@@ -4,6 +4,8 @@
 
 > Una extensión nativa de PHP (en C) que cuenta, codifica y decodifica tokens de LLM — **byte-exacta** con los tokenizers de referencia, **rápida** y **sin toolchain de Rust**. Más un companion en PHP puro que cuenta tokens de **Claude** y **Gemini** a través de sus APIs oficiales.
 
+[![CI](https://github.com/webrek/tokenizers/actions/workflows/ci.yml/badge.svg)](https://github.com/webrek/tokenizers/actions/workflows/ci.yml)
+[![docs](https://img.shields.io/badge/docs-webrek.github.io-blue)](https://webrek.github.io/tokenizers/)
 ![version](https://img.shields.io/badge/version-0.1.0-blue)
 ![php](https://img.shields.io/badge/php-8.3%20%7C%208.4-777bb4)
 ![thread safety](https://img.shields.io/badge/ZTS-supported-success)
