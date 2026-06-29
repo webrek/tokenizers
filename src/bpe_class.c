@@ -98,7 +98,10 @@ PHP_METHOD(Tokenizers_Bpe, encode) {
         an = zend_hash_num_elements(Z_ARRVAL_P(allowed));
         alist = emalloc(an * sizeof(char*)); free_alist = 1;
         size_t i = 0; zval *zv;
-        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(allowed), zv) { alist[i++] = Z_STRVAL_P(zv); } ZEND_HASH_FOREACH_END();
+        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(allowed), zv) {
+            if (Z_TYPE_P(zv) == IS_STRING) alist[i++] = Z_STRVAL_P(zv);
+        } ZEND_HASH_FOREACH_END();
+        an = i; /* real count of valid string specials; non-strings skipped */
     }
     int disallow_unlisted = 1;
     if (disallowed && Z_TYPE_P(disallowed) == IS_ARRAY) disallow_unlisted = 0; /* explicit empty/list => only listed disallowed; v1 simplification */
@@ -172,7 +175,10 @@ PHP_FUNCTION(tokenizers_encode) {
     const char **alist = NULL; size_t an = 0; int freea = 0;
     if (allowed && Z_TYPE_P(allowed) == IS_ARRAY) { an = zend_hash_num_elements(Z_ARRVAL_P(allowed));
         alist = emalloc(an*sizeof(char*)); freea = 1; size_t i=0; zval *zv;
-        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(allowed), zv){ alist[i++]=Z_STRVAL_P(zv); } ZEND_HASH_FOREACH_END(); }
+        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(allowed), zv){
+            if (Z_TYPE_P(zv) == IS_STRING) alist[i++]=Z_STRVAL_P(zv);
+        } ZEND_HASH_FOREACH_END();
+        an = i; /* real count of valid string specials; non-strings skipped */ }
     int dis = (disallowed && Z_TYPE_P(disallowed) == IS_ARRAY) ? 0 : 1;
     tk_ids ids; tk_ids_init(&ids); char *err=NULL;
     int rc = tk_encode(bpe_model_arg(obj), (const uint8_t*)text, tlen, alist, an, dis, &ids, &err);
