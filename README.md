@@ -59,9 +59,23 @@ pecl install tokenizers
 
 ### Via PIE
 
+PIE installs by Composer package name (`vendor/package`), not the extension name:
+
 ```bash
-pie install tokenizers
+pie install webrek/tokenizers
 ```
+
+Until the package is published to Packagist, install the dev version from the
+repository (add the VCS repo to your global PIE config, or):
+
+```bash
+pie install webrek/tokenizers:*@dev
+```
+
+PIE runs `phpize && ./configure --enable-tokenizers && make && make install`
+for you; the `php-ext` manifest is in `composer.json`. **Note:** end-to-end PIE
+install has not yet been verified on a clean machine — see `From source` below
+for the known-good path.
 
 ### From source
 
