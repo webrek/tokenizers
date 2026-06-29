@@ -121,7 +121,9 @@ const void *tk_model_pattern_code(const tk_model *m) { return m->pcre2; }
 
 int tk_model_set_pattern_str(tk_model *m, const char *pattern) {
     char **slot = tk_model__pattern_slot(m);
+    char *p = malloc(strlen(pattern) + 1);
+    if (!p) return -1;
     free(*slot);
-    *slot = malloc(strlen(pattern) + 1); strcpy(*slot, pattern);
+    *slot = p; strcpy(*slot, pattern);
     return 0;
 }
