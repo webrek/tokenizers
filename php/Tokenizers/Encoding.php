@@ -96,6 +96,7 @@ final class Encoding
         $raw = @file_get_contents($jsonPath);
         if ($raw === false) throw new TokenizerException("cannot read $jsonPath");
         $j = json_decode($raw, true);
+        if ($j === null) throw new TokenizerException("invalid JSON in $jsonPath: " . json_last_error_msg());
         if (!is_array($j) || ($j['model']['type'] ?? null) !== 'BPE') {
             throw new TokenizerException("unsupported tokenizer.json (only model.type=BPE is supported in v1)");
         }

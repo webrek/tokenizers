@@ -8,6 +8,8 @@ use Tokenizers\Encoding;
 require __DIR__ . '/../php/Tokenizers/Encoding.php';
 $b = Encoding::fromHuggingFace(__DIR__ . '/fixtures/mini_hf.json');
 echo implode(',', $b->encode('ab')), "\n";  // 2
+echo implode(',', $b->encode('0')), "\n";  // expect 3  (digit token "0" survived integer-key coercion)
 ?>
 --EXPECT--
 2
+3
