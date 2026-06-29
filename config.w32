@@ -1,6 +1,6 @@
 ARG_ENABLE("tokenizers", "Enable tokenizers", "no");
 if (PHP_TOKENIZERS != "no") {
-  EXTENSION("tokenizers", "tokenizers.c src/model.c src/base64.c src/heap.c src/engine.c src/pretok.c src/loader_tiktoken.c src/cache.c src/bpe_class.c");
+  EXTENSION("tokenizers", "tokenizers.c src/model.c src/base64.c src/heap.c src/engine.c src/pretok.c src/loader_tiktoken.c src/cache.c src/bpe_class.c src/normalize.c");
   ADD_FLAG("CFLAGS_TOKENIZERS", "/I " + configure_module_dirname + "\\src");
   ADD_EXTENSION_DEP("tokenizers", "json");
   ADD_EXTENSION_DEP("tokenizers", "pcre");
