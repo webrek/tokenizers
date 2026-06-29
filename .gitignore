@@ -26,3 +26,17 @@ Makefile
 Makefile.fragments
 Makefile.objects
 run-tests.php
+
+# Editor / autoconf backup files
+*~
+
+# Makefile variant not yet listed
+Makefile.global
+
+# phpt run artefacts
+tests/*.diff
+tests/*.out
+tests/*.exp
+tests/*.log
+tests/*.php
+tests/*.sh.bak

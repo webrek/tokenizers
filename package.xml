@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package version="2.0"
+         xmlns="http://pear.php.net/dtd/package-2.0"
+         xmlns:tasks="http://pear.php.net/dtd/tasks-1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+                             http://pear.php.net/dtd/tasks-1.0.xsd
+                             http://pear.php.net/dtd/package-2.0
+                             http://pear.php.net/dtd/package-2.0.xsd">
+ <name>tokenizers</name>
+ <channel>pecl.php.net</channel>
+ <summary>Fast BPE tokenizer extension (cl100k_base, p50k, r50k, o200k)</summary>
+ <description>
+  A PHP extension providing a fast Byte-Pair Encoding (BPE) tokenizer
+  compatible with OpenAI encodings (cl100k_base, p50k_base, r50k_base,
+  o200k_base). The core merge loop is implemented in C for performance
+  and uses O(n log n) heap-based merging. Vocabulary files are
+  downloaded and checksum-verified on first use via a bundled PHP shim;
+  they are never redistributed with the package.
+ </description>
+ <lead>
+  <name>Victor</name>
+  <user>victor</user>
+  <email>ahernandez@faypublicidad.com</email>
+  <active>yes</active>
+ </lead>
+ <date>2026-06-29</date>
+ <time>00:00:00</time>
+ <version>
+  <release>0.1.0</release>
+  <api>0.1.0</api>
+ </version>
+ <stability>
+  <release>alpha</release>
+  <api>alpha</api>
+ </stability>
+ <license uri="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</license>
+ <notes>
+  Initial alpha release. Provides \Tokenizers\Bpe (C class) and the
+  \Tokenizers\Encoding PHP shim for known-encoding download and
+  HuggingFace tokenizer.json loading.
+ </notes>
+ <contents>
+  <dir name="/">
+   <file name="config.m4" role="src"/>
+   <file name="config.w32" role="src"/>
+   <file name="php_tokenizers.h" role="src"/>
+   <file name="tokenizers.c" role="src"/>
+   <file name="tokenizers.stub.php" role="src"/>
+   <file name="tokenizers_arginfo.h" role="src"/>
+   <file name="LICENSE" role="doc"/>
+   <file name="README.md" role="doc"/>
+   <dir name="src">
+    <file name="base64.c" role="src"/>
+    <file name="base64.h" role="src"/>
+    <file name="bpe_class.c" role="src"/>
+    <file name="cache.c" role="src"/>
+    <file name="cache.h" role="src"/>
+    <file name="engine.c" role="src"/>
+    <file name="engine.h" role="src"/>
+    <file name="heap.c" role="src"/>
+    <file name="heap.h" role="src"/>
+    <file name="loader_tiktoken.c" role="src"/>
+    <file name="loader_tiktoken.h" role="src"/>
+    <file name="model.c" role="src"/>
+    <file name="model.h" role="src"/>
+    <file name="pretok.c" role="src"/>
+    <file name="pretok.h" role="src"/>
+   </dir>
+   <dir name="php">
+    <dir name="Tokenizers">
+     <file name="Encoding.php" role="php"/>
+    </dir>
+   </dir>
+   <dir name="tests">
+    <file name="001-load.phpt" role="test"/>
+    <file name="010-bpe-tiktoken.phpt" role="test"/>
+    <file name="011-procedural.phpt" role="test"/>
+    <file name="012-encoding-download.phpt" role="test"/>
+    <file name="013-fromvocab.phpt" role="test"/>
+    <file name="013-hf.phpt" role="test"/>
+    <file name="014-conformance.phpt" role="test"/>
+    <file name="015-worstcase.phpt" role="test"/>
+    <dir name="fixtures">
+     <file name="fake_cl.tiktoken" role="test"/>
+     <file name="mini_hf.json" role="test"/>
+     <file name="mini.tiktoken" role="test"/>
+    </dir>
+    <dir name="reference">
+     <file name="generate_fixtures.py" role="test"/>
+     <dir name="fixtures">
+      <file name="conformance.json" role="test"/>
+     </dir>
+    </dir>
+   </dir>
+  </dir>
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>8.3.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.10.0</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <providesextension>tokenizers</providesextension>
+ <extsrcrelease/>
+</package>

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    name: PHP ${{ matrix.php }} ${{ matrix.zts }} on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        php: ['8.3', '8.4']
+        zts: ['nts', 'zts']
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json
+          thread_safe: ${{ matrix.zts == 'zts' }}
+
+      - name: Install libpcre2-dev (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libpcre2-dev
+
+      - name: Install pcre2 (macOS)
+        if: runner.os == 'macOS'
+        run: brew install pcre2
+
+      - name: C unit tests
+        run: |
+          bash tests/cunit/run.sh model src/model.c
+          bash tests/cunit/run.sh base64 src/base64.c
+          bash tests/cunit/run.sh loader_tiktoken src/loader_tiktoken.c src/model.c src/base64.c
+          bash tests/cunit/run.sh pretok src/pretok.c src/model.c
+          bash tests/cunit/run.sh heap src/heap.c
+          bash tests/cunit/run.sh engine src/engine.c src/model.c src/heap.c src/pretok.c
+          bash tests/cunit/run.sh encode src/engine.c src/model.c src/heap.c src/pretok.c
+          bash tests/cunit/run.sh cache src/cache.c src/model.c
+
+      - name: Build extension
+        run: |
+          phpize
+          ./configure --enable-tokenizers
+          make -j$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)
+
+      - name: Cache vocab
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/tokenizers
+          key: vocab-v1
+
+      - name: Run phpt tests
+        run: |
+          export NO_INTERACTION=1
+          export REPORT_EXIT_STATUS=1
+          php -d extension=$(pwd)/modules/tokenizers.so run-tests.php \
+            -p $(which php) -q tests/*.phpt || (cat tests/*.log 2>/dev/null; exit 1)
