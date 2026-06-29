@@ -23,6 +23,17 @@ echo $hasKey ? "has-key\n" : "no-key\n";
 
 try { (new Gemini(apiKey:'k', transport:new FakeTransport(403,'{"error":{}}')))->countTokens('gemini-1.5-flash','x'); echo "no throw\n"; }
 catch (\Tokenizers\TokenizerException $e) { echo "http-throws\n"; }
+
+// a leading "models/" must not double-prefix
+$t2 = new FakeTransport(200, '{"totalTokens":3}');
+(new Gemini(apiKey:'gk', transport:$t2))->countTokens('models/gemini-1.5-flash', 'x');
+$u = $t2->calls[0]['url'];
+echo (str_contains($u, 'models/gemini-1.5-flash:countTokens') && !str_contains($u, 'models/models/')) ? "norm-ok\n" : "norm-bad\n";
+
+// missing key (both env vars cleared) -> throws before any transport call
+putenv('GEMINI_API_KEY'); putenv('GOOGLE_API_KEY');
+try { (new Gemini(transport:new FakeTransport(200,'{"totalTokens":1}')))->countTokens('gemini-1.5-flash','x'); echo "no throw\n"; }
+catch (\Tokenizers\TokenizerException $e) { echo "nokey-throws\n"; }
 ?>
 --EXPECT--
 7
@@ -30,3 +41,5 @@ url-ok
 body-ok
 has-key
 http-throws
+norm-ok
+nokey-throws
