@@ -13,6 +13,11 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         php: ['8.3', '8.4']
         zts: ['nts', 'zts']
+        exclude:
+          # setup-php cannot reliably provide a ZTS PHP on macOS runners, so
+          # those legs would fail at setup. Linux covers ZTS verification.
+          - os: macos-latest
+            zts: 'zts'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -23,7 +28,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: json
-          thread_safe: ${{ matrix.zts == 'zts' }}
+          thread_safe: ${{ matrix.zts == 'zts' && 'true' || 'false' }}
 
       - name: Install libpcre2-dev (Linux)
         if: runner.os == 'Linux'
