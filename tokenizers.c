@@ -5,6 +5,9 @@
 #include "ext/standard/info.h"
 #include "php_tokenizers.h"
 #include "tokenizers_arginfo.h"
+#include "src/cache.h"
+
+extern void tk_register_bpe_class(void);
 
 PHP_FUNCTION(tokenizers_version)
 {
@@ -23,15 +26,19 @@ PHP_MINFO_FUNCTION(tokenizers)
 PHP_MINIT_FUNCTION(tokenizers)
 {
     register_tokenizers_symbols(module_number);
+    tk_cache_init();
+    tk_register_bpe_class();
     return SUCCESS;
 }
+
+PHP_MSHUTDOWN_FUNCTION(tokenizers) { tk_cache_shutdown(); return SUCCESS; }
 
 zend_module_entry tokenizers_module_entry = {
     STANDARD_MODULE_HEADER,
     "tokenizers",
     ext_functions,            /* from arginfo */
     PHP_MINIT(tokenizers),
-    NULL, NULL, NULL,
+    PHP_MSHUTDOWN(tokenizers), NULL, NULL,
     PHP_MINFO(tokenizers),
     PHP_TOKENIZERS_VERSION,
     STANDARD_MODULE_PROPERTIES
