@@ -1,6 +1,6 @@
 # API Reference — `tokenizers` extension v0.1.0
 
-> For guides and tutorials, see the [guides](guides/) and [Getting Started](getting-started.md).
+> For guides and tutorials, see the [guides](guides/loading-models.md) and [Getting Started](getting-started.md).
 
 ---
 
@@ -25,7 +25,6 @@
    - [`Transport` interface](#transport-interface)
    - [`Anthropic`](#anthropic)
    - [`Gemini`](#gemini)
-   - [`TokenCounter`](#tokencounter)
    - [Environment variable reference](#environment-variable-reference)
 8. [`\Tokenizers\TokenCounter`](#8-tokenizerstokencounter)
 9. [`\Tokenizers\TokenizerException`](#9-tokenizerstokenizerexception)

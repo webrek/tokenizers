@@ -1,0 +1,97 @@
+site_name: tokenizers
+site_description: >-
+  Native PHP extension for byte-exact LLM token counting (BPE, WordPiece,
+  Unigram) plus a pure-PHP companion that counts Claude and Gemini tokens via
+  their official APIs.
+site_author: webrek
+
+# Adjust these to your real GitHub repo / Pages URL before publishing.
+site_url: https://webrek.github.io/tokenizers/
+repo_url: https://github.com/webrek/tokenizers
+repo_name: webrek/tokenizers
+edit_uri: edit/main/docs/
+
+# Internal design specs/plans live under docs/superpowers/ — keep them out of the site.
+exclude_docs: |
+  superpowers/
+
+# With `mkdocs build --strict`, these warnings become hard errors, so broken
+# in-page anchors and dead relative links fail the build.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+theme:
+  name: material
+  language: en
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+      # Unicode-aware slugify (GitHub-style): keeps accented anchors like
+      # "#solución-de-problemas" working, matching how GitHub renders them.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Guides:
+      - Loading models: guides/loading-models.md
+      - Estimating LLM costs: guides/estimating-costs.md
+      - Remote providers (Claude / Gemini): guides/remote-providers.md
+  - API Reference: api-reference.md
+  - Status & Limitations: status.md
+  - Español:
+      - Inicio: es/index.md
+      - Primeros pasos: es/getting-started.md
+      - Guías:
+          - Cargar modelos: es/guides/loading-models.md
+          - Estimar costos de LLM: es/guides/estimating-costs.md
+          - Proveedores remotos (Claude / Gemini): es/guides/remote-providers.md
+      - Referencia de la API: es/api-reference.md
+      - Estado y limitaciones: es/status.md
