@@ -11,6 +11,7 @@ int tk_wordpiece_encode(const tk_model *m,const char *text,size_t len,const tk_w
                         uint32_t **out_ids,size_t *n_out){
     char *norm; size_t nlen; tk_span *sp; size_t ns;
     tk_bert_normalize(text,len,o->lowercase,o->strip_accents,o->handle_cjk,&norm,&nlen,&sp,&ns);
+    (void)nlen; /* spans carry the offsets; out_len unused here */
     uint32_t *ids=NULL; size_t cap=0,no=0;
     char tmp[512];
     for(size_t w=0;w<ns;w++){
