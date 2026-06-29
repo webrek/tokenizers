@@ -5,6 +5,7 @@ final class CurlTransport implements Transport {
     public function post(string $url, array $headers, string $body, int $timeout): array {
         if (!\function_exists('curl_init')) throw new TokenizerException('ext-curl is required for remote token counting');
         $ch = \curl_init($url);
+        if ($ch === false) throw new TokenizerException("curl_init failed for URL: $url");
         \curl_setopt_array($ch, [
             \CURLOPT_POST => true,
             \CURLOPT_POSTFIELDS => $body,

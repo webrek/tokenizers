@@ -15,6 +15,7 @@ final class Anthropic {
         $payload = ['model'=>$model, 'messages'=>$msgs];
         if ($system !== null) $payload['system'] = $system;
         $body = \json_encode($payload, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
+        if ($body === false) throw new TokenizerException('Anthropic count_tokens: failed to JSON-encode payload');
         $resp = $this->transport->post(
             'https://api.anthropic.com/v1/messages/count_tokens',
             ['x-api-key: '.$this->apiKey, 'anthropic-version: '.$this->version, 'content-type: application/json'],
