@@ -129,6 +129,11 @@ PHP_METHOD(Tokenizers_Unigram, fromVocab) {
     }
 
     if (has_unk_id) {
+        if (unk_id_opt < 0 || (zend_ulong)unk_id_opt >= n_pieces) {
+            tk_model_free(m); free(scores);
+            tk_ug_throw("unkId out of range");
+            RETURN_THROWS();
+        }
         resolved_unk_id = (uint32_t)unk_id_opt;
     } else if (!found_unk) {
         resolved_unk_id = 0;
