@@ -212,8 +212,8 @@ Conformance is where most BPE ports fail. The suite is the primary deliverable's
 
 Each phase gets its own spec → plan → implementation cycle.
 
-## 13. Open questions for spec review
+## 13. Resolved decisions (confirmed in review)
 
-- Confirm the extension name `tokenizers` (vs e.g. `llmtok`) and namespace `\Tokenizers\`.
-- Confirm cache directory strategy for the shim (XDG vs system temp vs configurable both).
-- Confirm whether `p50k_base`/`r50k_base` should be added in v1 (currently deferred).
+- **Extension name:** `tokenizers`, namespace `\Tokenizers\`. Confirmed.
+- **Shim cache directory:** configurable, defaulting to `$XDG_CACHE_HOME/tokenizers/` (falling back to the user cache dir / system temp when unset). Confirmed.
+- **`p50k_base`/`r50k_base`:** deferred out of v1 (trivial to add later; keeps the conformance surface small now). Confirmed.
