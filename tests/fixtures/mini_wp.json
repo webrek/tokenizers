@@ -1,0 +1,1 @@
+{"model":{"type":"WordPiece","vocab":{"[UNK]":0,"un":1,"##aff":2,"##able":3,"play":4,"##ing":5},"unk_token":"[UNK]","continuing_subword_prefix":"##","max_input_chars_per_word":100},"normalizer":{"type":"BertNormalizer","lowercase":true,"strip_accents":null,"handle_chinese_chars":true}}

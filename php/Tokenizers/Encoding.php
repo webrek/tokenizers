@@ -91,27 +91,68 @@ final class Encoding
         return $out;
     }
 
-    public static function fromHuggingFace(string $jsonPath): Bpe
+    public static function fromHuggingFace(string $jsonPath): Bpe|WordPiece
     {
         $raw = @file_get_contents($jsonPath);
         if ($raw === false) throw new TokenizerException("cannot read $jsonPath");
         $j = json_decode($raw, true);
         if ($j === null) throw new TokenizerException("invalid JSON in $jsonPath: " . json_last_error_msg());
-        if (!is_array($j) || ($j['model']['type'] ?? null) !== 'BPE') {
-            throw new TokenizerException("unsupported tokenizer.json (only model.type=BPE is supported in v1)");
+        if (!is_array($j)) throw new TokenizerException("invalid tokenizer.json: not a JSON object");
+
+        $modelType = $j['model']['type'] ?? null;
+
+        if ($modelType === 'BPE') {
+            $vocab = $j['model']['vocab'] ?? [];
+            $rawVocab = [];
+            foreach ($vocab as $token => $id) {
+                $rawVocab[self::tokenCharsToBytes((string)$token)] = (int)$id;
+            }
+            $specials = [];
+            foreach (($j['added_tokens'] ?? []) as $t) {
+                if (!empty($t['special'])) $specials[(string)$t['content']] = (int)$t['id'];
+            }
+            // ByteLevel BPE uses the GPT-2 split regex
+            $pattern = "(?i:'s|'t|'re|'ve|'m|'ll|'d)| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+";
+            return Bpe::fromVocab($rawVocab, $j['model']['merges'] ?? [], $pattern, $specials);
         }
-        $vocab = $j['model']['vocab'] ?? [];
-        $rawVocab = [];
-        foreach ($vocab as $token => $id) {
-            $rawVocab[self::tokenCharsToBytes((string)$token)] = (int)$id;
+
+        if ($modelType === 'WordPiece') {
+            // vocab tokens are plain UTF-8 strings — no byte-level decoding
+            $vocab = [];
+            foreach (($j['model']['vocab'] ?? []) as $token => $id) {
+                $vocab[(string)$token] = (int)$id;
+            }
+            // BertNormalizer block
+            $normalizer    = $j['normalizer'] ?? [];
+            $lowercase     = (bool)($normalizer['lowercase'] ?? true);
+            $stripRaw      = $normalizer['strip_accents'] ?? null;
+            // null means "derive from lowercase"
+            $stripAccents  = ($stripRaw === null) ? $lowercase : (bool)$stripRaw;
+            $handleCjk     = (bool)($normalizer['handle_chinese_chars'] ?? true);
+
+            $opts = [
+                'unkToken'               => (string)($j['model']['unk_token'] ?? '[UNK]'),
+                'continuingSubwordPrefix'=> (string)($j['model']['continuing_subword_prefix'] ?? '##'),
+                'maxInputCharsPerWord'   => (int)($j['model']['max_input_chars_per_word'] ?? 100),
+                'lowercase'              => $lowercase,
+                'stripAccents'           => $stripAccents,
+                'handleChineseChars'     => $handleCjk,
+            ];
+            return WordPiece::fromVocab($vocab, $opts);
         }
-        $specials = [];
-        foreach (($j['added_tokens'] ?? []) as $t) {
-            if (!empty($t['special'])) $specials[(string)$t['content']] = (int)$t['id'];
+
+        throw new TokenizerException("unsupported tokenizer.json model.type: $modelType");
+    }
+
+    public static function wordPieceFromVocabFile(string $path, array $opts = []): WordPiece
+    {
+        $lines = @file($path, FILE_IGNORE_NEW_LINES);
+        if ($lines === false) throw new TokenizerException("cannot read $path");
+        $vocab = [];
+        foreach ($lines as $id => $token) {
+            $vocab[$token] = $id;
         }
-        // ByteLevel BPE uses the GPT-2 split regex
-        $pattern = "(?i:'s|'t|'re|'ve|'m|'ll|'d)| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+";
-        return Bpe::fromVocab($rawVocab, $j['model']['merges'] ?? [], $pattern, $specials);
+        return WordPiece::fromVocab($vocab, $opts);
     }
 
     public static function load(string $name): Bpe
