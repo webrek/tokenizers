@@ -1,0 +1,28 @@
+# PHP extension build artifacts
+*.lo
+*.la
+*.dep
+*.o
+*.so
+*.dylib
+.libs/
+src/.libs/
+modules/
+
+# Autoconf / configure outputs
+config.h
+config.h.in
+config.log
+config.nice
+config.status
+configure
+configure.ac
+autom4te.cache/
+acinclude.m4
+aclocal.m4
+build/
+libtool
+Makefile
+Makefile.fragments
+Makefile.objects
+run-tests.php
