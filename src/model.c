@@ -118,3 +118,10 @@ void tk_model__set_pcre2(tk_model *m, void *code, void (*freefn)(void*)) {
 }
 char **tk_model__pattern_slot(tk_model *m) { return &m->pattern; }
 const void *tk_model_pattern_code(const tk_model *m) { return m->pcre2; }
+
+int tk_model_set_pattern_str(tk_model *m, const char *pattern) {
+    char **slot = tk_model__pattern_slot(m);
+    free(*slot);
+    *slot = malloc(strlen(pattern) + 1); strcpy(*slot, pattern);
+    return 0;
+}
