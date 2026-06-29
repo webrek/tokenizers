@@ -1,0 +1,211 @@
+[
+{
+"text": "hello",
+"ids": [
+21820
+]
+},
+{
+"text": "world",
+"ids": [
+296
+]
+},
+{
+"text": "tokenization",
+"ids": [
+14145,
+1707
+]
+},
+{
+"text": "unbelievable",
+"ids": [
+25525
+]
+},
+{
+"text": "preprocessing",
+"ids": [
+554,
+15056,
+53
+]
+},
+{
+"text": "Hello",
+"ids": [
+8774
+]
+},
+{
+"text": "WORLD",
+"ids": [
+3,
+30944
+]
+},
+{
+"text": "hello world",
+"ids": [
+21820,
+296
+]
+},
+{
+"text": "Hello World",
+"ids": [
+8774,
+1150
+]
+},
+{
+"text": "hello, world.",
+"ids": [
+21820,
+6,
+296,
+5
+]
+},
+{
+"text": "Hello, World!",
+"ids": [
+8774,
+6,
+1150,
+55
+]
+},
+{
+"text": "It's a test.",
+"ids": [
+94,
+31,
+7,
+3,
+9,
+794,
+5
+]
+},
+{
+"text": "(parentheses)",
+"ids": [
+41,
+12352,
+88,
+2260,
+61
+]
+},
+{
+"text": "semi;colon:test",
+"ids": [
+4772,
+117,
+8135,
+29,
+10,
+4377
+]
+},
+{
+"text": "\"quoted\"",
+"ids": [
+96,
+14460,
+1054,
+121
+]
+},
+{
+"text": "123",
+"ids": [
+3,
+14574
+]
+},
+{
+"text": "42.5",
+"ids": [
+314,
+15967
+]
+},
+{
+"text": "1000000",
+"ids": [
+5580,
+2313
+]
+},
+{
+"text": "The quick brown fox jumps over the lazy dog.",
+"ids": [
+37,
+1704,
+4216,
+3,
+20400,
+4418,
+7,
+147,
+8,
+19743,
+1782,
+5
+]
+},
+{
+"text": "Hello, how are you today?",
+"ids": [
+8774,
+6,
+149,
+33,
+25,
+469,
+58
+]
+},
+{
+"text": "I love machine learning and natural language processing.",
+"ids": [
+27,
+333,
+1437,
+1036,
+11,
+793,
+1612,
+3026,
+5
+]
+},
+{
+"text": "CamelCase",
+"ids": [
+1336,
+2341,
+254,
+9,
+7,
+15
+]
+},
+{
+"text": "internationalization",
+"ids": [
+1038,
+1707
+]
+},
+{
+"text": "counterproductive",
+"ids": [
+3485,
+27408
+]
+}
+]

@@ -181,7 +181,12 @@ final class Encoding
                         "unsupported Metaspace replacement char: $replacement (v1 only supports ▁ / U+2581)"
                     );
                 }
-                $opts['addPrefixSpace'] = (bool)($metaspace['add_prefix_space'] ?? true);
+                // Support both old-style add_prefix_space (bool) and new-style prepend_scheme ('always'/'first'/'never').
+                if (isset($metaspace['prepend_scheme'])) {
+                    $opts['addPrefixSpace'] = ($metaspace['prepend_scheme'] !== 'never');
+                } else {
+                    $opts['addPrefixSpace'] = (bool)($metaspace['add_prefix_space'] ?? true);
+                }
             }
 
             // normalizer: v1 treats all normalizers as identity on ASCII.

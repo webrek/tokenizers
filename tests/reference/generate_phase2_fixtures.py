@@ -100,3 +100,73 @@ with open(conf_path, "w", encoding="utf-8") as f:
     f.write("\n")
 
 print(f"wrote {conf_path} ({len(out)} cases)")
+
+# ============================================================
+# Section 2: Unigram conformance fixtures (t5-small, Apache-2.0)
+# ============================================================
+from transformers import T5TokenizerFast
+import warnings
+warnings.filterwarnings("ignore")
+
+tok_t5 = T5TokenizerFast.from_pretrained("t5-small")
+
+# (a) Save the raw HuggingFace tokenizer.json so PHP can load it.
+t5_json_path = os.path.join(FIXTURE_DIR, "t5_tokenizer.json")
+tok_t5.backend_tokenizer.save(t5_json_path)
+print(f"wrote {t5_json_path}")
+
+# (b) Curated ASCII case set — within documented v1 normalization coverage.
+#
+# EXCLUDED (would diverge from the Metaspace + WhitespaceSplit pre_tokenizer):
+#   - empty string / whitespace-only strings (T5 returns []; PHP would return [unk_id])
+#   - multiple consecutive spaces / tabs / newlines (T5 collapses via WhitespaceSplit)
+#   - leading or trailing spaces (WhitespaceSplit strips them)
+#   - non-ASCII / accented chars (Precompiled/NFKC normalizer is identity on ASCII only)
+#   - CJK ideographs (NFKC scope)
+#
+# INCLUDED: plain ASCII words, subword-heavy words, punctuation, numbers, sentences.
+UG_CASES = [
+    # single plain words
+    "hello",
+    "world",
+    "tokenization",
+    "unbelievable",
+    "preprocessing",
+    # case variants
+    "Hello",
+    "WORLD",
+    # two-word sentences (single space)
+    "hello world",
+    "Hello World",
+    # punctuation — ASCII only
+    "hello, world.",
+    "Hello, World!",
+    "It's a test.",
+    "(parentheses)",
+    "semi;colon:test",
+    '"quoted"',
+    # numbers
+    "123",
+    "42.5",
+    "1000000",
+    # longer sentences (single internal spaces only)
+    "The quick brown fox jumps over the lazy dog.",
+    "Hello, how are you today?",
+    "I love machine learning and natural language processing.",
+    # more subword-heavy
+    "CamelCase",
+    "internationalization",
+    "counterproductive",
+]
+
+ug_out = []
+for text in UG_CASES:
+    ids = tok_t5.encode(text, add_special_tokens=False)
+    ug_out.append({"text": text, "ids": ids})
+
+ug_conf_path = os.path.join(FIXTURE_DIR, "unigram_conformance.json")
+with open(ug_conf_path, "w", encoding="utf-8") as f:
+    json.dump(ug_out, f, ensure_ascii=False, indent=0)
+    f.write("\n")
+
+print(f"wrote {ug_conf_path} ({len(ug_out)} cases)")

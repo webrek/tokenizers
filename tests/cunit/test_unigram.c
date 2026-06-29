@@ -15,8 +15,8 @@ int main(void){
     tk_model_add(m,(const uint8_t*)"o",1,6);
     tk_model_add(m,(const uint8_t*)"<unk>",5,7);
     /* scores: prefer "▁he"(-1) + "llo"(-1) over char-by-char (-2 each) */
-    float sc[8]={-1,-1,-3,-2,-2,-2,-2,-10};
-    tk_ug_opts o={7,-10.0f,1,5}; /* unk id 7, add prefix ▁, max piece len 5 bytes */
+    double sc[8]={-1,-1,-3,-2,-2,-2,-2,-10};
+    tk_ug_opts o={7,-10.0,1,5}; /* unk id 7, add prefix ▁, max piece len 5 bytes */
     uint32_t *ids; size_t n;
     assert(tk_unigram_encode(m,sc,"hello",5,&o,&ids,&n)==0);
     /* with add_prefix_space: "▁hello" -> "▁he"+"llo" = [0,1] */

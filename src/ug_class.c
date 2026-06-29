@@ -13,7 +13,7 @@ zend_class_entry *tokenizers_ug_ce;
 typedef struct {
     const tk_model *model;
     int owns;
-    float *scores;        /* malloc'd, indexed by id; free'd in free_obj */
+    double *scores;       /* malloc'd, indexed by id; free'd in free_obj */
     size_t max_piece_len;
     tk_ug_opts opts;
     zend_object std;      /* MUST be last */
@@ -76,7 +76,7 @@ PHP_METHOD(Tokenizers_Unigram, fromVocab) {
     }
 
     tk_model *m = tk_model_new((uint32_t)n_pieces);
-    float *scores = (float*)malloc((size_t)n_pieces * sizeof(float));
+    double *scores = (double*)malloc((size_t)n_pieces * sizeof(double));
     if (!scores) {
         tk_model_free(m);
         tk_ug_throw("out of memory");
@@ -102,7 +102,7 @@ PHP_METHOD(Tokenizers_Unigram, fromVocab) {
         const char *piece_str = ZSTR_VAL(piece_str_obj);
         size_t piece_len = ZSTR_LEN(piece_str_obj);
 
-        float score = (float)zval_get_double(score_zv);
+        double score = zval_get_double(score_zv);
 
         int rc = tk_model_add(m, (const uint8_t*)piece_str, piece_len, id);
 
@@ -139,7 +139,16 @@ PHP_METHOD(Tokenizers_Unigram, fromVocab) {
         resolved_unk_id = 0;
     }
 
-    float unk_score = (resolved_unk_id < (uint32_t)n_pieces) ? scores[resolved_unk_id] : -10.0f;
+    /* Compute unk_score = min(non-zero piece scores) - 10.0, matching HF tokenizers (Rust).
+       Special tokens (<unk>, <pad>, </s>) have score 0.0 in SentencePiece models; exclude them
+       so the penalty is anchored to the actual worst regular-piece score, not the sentinel value. */
+    double min_nz = 0.0; int found_nz = 0;
+    for (uint32_t k = 0; k < (uint32_t)n_pieces; k++) {
+        if (scores[k] != 0.0 && (!found_nz || scores[k] < min_nz)) {
+            min_nz = scores[k]; found_nz = 1;
+        }
+    }
+    double unk_score = found_nz ? min_nz - 10.0 : -10.0;
 
     /* Construct the PHP object */
     object_init_ex(return_value, tokenizers_ug_ce);
