@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 57b317eabf175ce809331bef52c7747d6c8ca8a8 */
+ * Stub hash: e405fdd9aeb92121410a755aa33723740f7ab253 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_version, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
@@ -42,6 +42,19 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Tokenizers_WordPiece_decod
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_Tokenizers_WordPiece_vocabSize arginfo_tokenizers_cache_count
+
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Tokenizers_Unigram_fromVocab, 0, 1, Tokenizers\\\125nigram, 0)
+	ZEND_ARG_TYPE_INFO(0, pieces, IS_ARRAY, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, opts, IS_ARRAY, 0, "[]")
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Tokenizers_Unigram_encode arginfo_class_Tokenizers_WordPiece_encode
+
+#define arginfo_class_Tokenizers_Unigram_countTokens arginfo_class_Tokenizers_WordPiece_countTokens
+
+#define arginfo_class_Tokenizers_Unigram_decode arginfo_class_Tokenizers_WordPiece_decode
+
+#define arginfo_class_Tokenizers_Unigram_vocabSize arginfo_tokenizers_cache_count
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Tokenizers_Bpe_fromTiktokenFile, 0, 2, Tokenizers\\Bpe, 0)
 	ZEND_ARG_TYPE_INFO(0, path, IS_STRING, 0)
@@ -86,6 +99,11 @@ ZEND_METHOD(Tokenizers_WordPiece, encode);
 ZEND_METHOD(Tokenizers_WordPiece, countTokens);
 ZEND_METHOD(Tokenizers_WordPiece, decode);
 ZEND_METHOD(Tokenizers_WordPiece, vocabSize);
+ZEND_METHOD(Tokenizers_Unigram, fromVocab);
+ZEND_METHOD(Tokenizers_Unigram, encode);
+ZEND_METHOD(Tokenizers_Unigram, countTokens);
+ZEND_METHOD(Tokenizers_Unigram, decode);
+ZEND_METHOD(Tokenizers_Unigram, vocabSize);
 ZEND_METHOD(Tokenizers_Bpe, fromTiktokenFile);
 ZEND_METHOD(Tokenizers_Bpe, fromVocab);
 ZEND_METHOD(Tokenizers_Bpe, encode);
@@ -117,6 +135,16 @@ static const zend_function_entry class_Tokenizers_WordPiece_methods[] = {
 	ZEND_ME(Tokenizers_WordPiece, countTokens, arginfo_class_Tokenizers_WordPiece_countTokens, ZEND_ACC_PUBLIC)
 	ZEND_ME(Tokenizers_WordPiece, decode, arginfo_class_Tokenizers_WordPiece_decode, ZEND_ACC_PUBLIC)
 	ZEND_ME(Tokenizers_WordPiece, vocabSize, arginfo_class_Tokenizers_WordPiece_vocabSize, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_Tokenizers_Unigram_methods[] = {
+	ZEND_ME(Tokenizers_Unigram, fromVocab, arginfo_class_Tokenizers_Unigram_fromVocab, ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)
+	ZEND_ME(Tokenizers_Unigram, encode, arginfo_class_Tokenizers_Unigram_encode, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_Unigram, countTokens, arginfo_class_Tokenizers_Unigram_countTokens, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_Unigram, decode, arginfo_class_Tokenizers_Unigram_decode, ZEND_ACC_PUBLIC)
+	ZEND_ME(Tokenizers_Unigram, vocabSize, arginfo_class_Tokenizers_Unigram_vocabSize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -153,6 +181,17 @@ static zend_class_entry *register_class_Tokenizers_WordPiece(void)
 	zend_class_entry ce, *class_entry;
 
 	INIT_NS_CLASS_ENTRY(ce, "Tokenizers", "WordPiece", class_Tokenizers_WordPiece_methods);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_Tokenizers_Unigram(void)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_NS_CLASS_ENTRY(ce, "Tokenizers", "Unigram", class_Tokenizers_Unigram_methods);
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
 	class_entry->ce_flags |= ZEND_ACC_FINAL;
 

@@ -9,6 +9,7 @@
 
 extern void tk_register_bpe_class(void);
 extern void tk_register_wp_class(void);
+extern void tk_register_ug_class(void);
 
 PHP_FUNCTION(tokenizers_version)
 {
@@ -30,6 +31,7 @@ PHP_MINIT_FUNCTION(tokenizers)
     tk_cache_init();
     tk_register_bpe_class();
     tk_register_wp_class();
+    tk_register_ug_class();
     return SUCCESS;
 }
 
