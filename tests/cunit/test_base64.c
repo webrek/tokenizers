@@ -14,6 +14,10 @@ int main(void) {
     chk("", "", 0);
     uint8_t out[8]; size_t n;
     assert(tk_b64_decode("!!", 2, out, &n) == -1); /* invalid */
+    { uint8_t o2[16]; size_t n2;
+      assert(tk_b64_decode("YQ========", 10, o2, &n2) == -1);  /* >2 padding rejected */
+      assert(tk_b64_decode("YR==", 4, o2, &n2) == -1);          /* non-zero trailing bits rejected */
+    }
     printf("test_base64 OK\n");
     return 0;
 }
