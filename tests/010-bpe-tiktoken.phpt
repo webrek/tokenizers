@@ -15,6 +15,15 @@ echo $bpe->vocabSize(), "\n";           // expect 5
 $n1 = tokenizers_cache_count();
 $bpe2 = Bpe::fromTiktokenFile(__DIR__ . '/fixtures/mini.tiktoken', '\w+| +', []);
 var_dump(tokenizers_cache_count() === $n1);
+// FIX2: same id, different special NAME -> distinct cache entries
+$base = tokenizers_cache_count();
+Tokenizers\Bpe::fromTiktokenFile(__DIR__ . '/fixtures/mini.tiktoken', '\w+| +', ['<eos>' => 100]);
+$m = tokenizers_cache_count();
+Tokenizers\Bpe::fromTiktokenFile(__DIR__ . '/fixtures/mini.tiktoken', '\w+| +', ['<bos>' => 100]);
+$n = tokenizers_cache_count();
+var_dump($m === $base + 1 && $n === $m + 1);
+// FIX3: object is uncloneable
+try { clone $bpe; echo "cloned\n"; } catch (\Error $e) { echo "uncloneable\n"; }
 ?>
 --EXPECT--
 3,2
@@ -22,3 +31,5 @@ abc
 2
 5
 bool(true)
+bool(true)
+uncloneable

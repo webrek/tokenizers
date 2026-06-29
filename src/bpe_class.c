@@ -1,3 +1,4 @@
+#include <string.h>
 #include "php.h"
 #include "zend_exceptions.h"
 #include "php_tokenizers.h"
@@ -40,7 +41,7 @@ static tk_model *cache_load_tiktoken(void *ud, char **err) {
     load_ctx *c = ud;
     tk_model *m = tk_load_tiktoken_file(c->path, c->pattern, err);
     if (!m) return NULL;
-    if (tk_model_set_pattern(m, c->pattern) != 0) { tk_model_free(m); if (err){*err=estrdup("invalid pre-tokenizer pattern");} return NULL; }
+    if (tk_model_set_pattern(m, c->pattern) != 0) { tk_model_free(m); if (err){ const char *p = "invalid pre-tokenizer pattern"; char *e = malloc(strlen(p) + 1); if (e) strcpy(e, p); *err = e; } return NULL; }
     for (size_t i = 0; i < c->spec_n; i++)
         tk_model_add_special(m, c->spec_str[i], strlen(c->spec_str[i]), c->spec_id[i]);
     return m;
@@ -70,7 +71,7 @@ PHP_METHOD(Tokenizers_Bpe, fromTiktokenFile) {
        specials yields distinct models */
     char key[4096]; int koff = snprintf(key, sizeof key, "tiktoken:%s|%s|s%zu", path, pattern, sn);
     for (size_t i = 0; i < sn && koff < (int)sizeof key - 24; i++)
-        koff += snprintf(key + koff, sizeof key - koff, ":%u", sid[i]);
+        koff += snprintf(key + koff, sizeof key - koff, ":%s=%u", sstr[i], sid[i]);
 
     load_ctx lc = { path, pattern, sstr, sid, sn }; char *err = NULL;
     const tk_model *m = tk_cache_get_or_load(key, cache_load_tiktoken, &lc, &err);
@@ -164,4 +165,5 @@ void tk_register_bpe_class(void) {
     memcpy(&tk_bpe_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     tk_bpe_handlers.offset = XtOffsetOf(tk_bpe_obj, std);
     tk_bpe_handlers.free_obj = tk_bpe_free;
+    tk_bpe_handlers.clone_obj = NULL; /* disable cloning; Zend throws "uncloneable" automatically */
 }
