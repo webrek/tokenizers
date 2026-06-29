@@ -22,4 +22,7 @@ namespace Tokenizers {
 namespace {
     function tokenizers_version(): string {}
     function tokenizers_cache_count(): int {}
+    function tokenizers_encode(\Tokenizers\Bpe $t, string $text, array $allowedSpecial = [], array|string $disallowedSpecial = "all"): array {}
+    function tokenizers_decode(\Tokenizers\Bpe $t, array $ids): string {}
+    function tokenizers_count(\Tokenizers\Bpe $t, string $text): int {}
 }

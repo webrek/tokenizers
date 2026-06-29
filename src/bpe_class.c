@@ -156,6 +156,42 @@ PHP_METHOD(Tokenizers_Bpe, name) {
 /* fromVocab implemented in Task 13 */
 PHP_METHOD(Tokenizers_Bpe, fromVocab) { tk_throw("fromVocab not yet implemented"); RETURN_THROWS(); }
 
+/* procedural API helpers */
+static const tk_model *bpe_model_arg(zval *z) {
+    return tk_bpe_from(Z_OBJ_P(z))->model;
+}
+PHP_FUNCTION(tokenizers_count) {
+    zval *obj; char *text; size_t tlen;
+    ZEND_PARSE_PARAMETERS_START(2,2) Z_PARAM_OBJECT_OF_CLASS(obj, tokenizers_bpe_ce) Z_PARAM_STRING(text, tlen) ZEND_PARSE_PARAMETERS_END();
+    RETURN_LONG((zend_long)tk_count(bpe_model_arg(obj), (const uint8_t*)text, tlen));
+}
+PHP_FUNCTION(tokenizers_encode) {
+    zval *obj; char *text; size_t tlen; zval *allowed = NULL, *disallowed = NULL;
+    ZEND_PARSE_PARAMETERS_START(2,4) Z_PARAM_OBJECT_OF_CLASS(obj, tokenizers_bpe_ce) Z_PARAM_STRING(text, tlen)
+        Z_PARAM_OPTIONAL Z_PARAM_ZVAL(allowed) Z_PARAM_ZVAL(disallowed) ZEND_PARSE_PARAMETERS_END();
+    const char **alist = NULL; size_t an = 0; int freea = 0;
+    if (allowed && Z_TYPE_P(allowed) == IS_ARRAY) { an = zend_hash_num_elements(Z_ARRVAL_P(allowed));
+        alist = emalloc(an*sizeof(char*)); freea = 1; size_t i=0; zval *zv;
+        ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(allowed), zv){ alist[i++]=Z_STRVAL_P(zv); } ZEND_HASH_FOREACH_END(); }
+    int dis = (disallowed && Z_TYPE_P(disallowed) == IS_ARRAY) ? 0 : 1;
+    tk_ids ids; tk_ids_init(&ids); char *err=NULL;
+    int rc = tk_encode(bpe_model_arg(obj), (const uint8_t*)text, tlen, alist, an, dis, &ids, &err);
+    if (freea) efree(alist);
+    if (rc != 0) { tk_ids_free(&ids); zend_throw_exception(tokenizers_exception_ce, err?err:"encode failed", 0); if(err)free(err); RETURN_THROWS(); }
+    array_init_size(return_value, ids.len);
+    for (size_t i=0;i<ids.len;i++) add_next_index_long(return_value, ids.data[i]);
+    tk_ids_free(&ids);
+}
+PHP_FUNCTION(tokenizers_decode) {
+    zval *obj, *arr;
+    ZEND_PARSE_PARAMETERS_START(2,2) Z_PARAM_OBJECT_OF_CLASS(obj, tokenizers_bpe_ce) Z_PARAM_ARRAY(arr) ZEND_PARSE_PARAMETERS_END();
+    size_t n = zend_hash_num_elements(Z_ARRVAL_P(arr)); uint32_t *ids = emalloc((n?n:1)*sizeof(uint32_t));
+    size_t i=0; zval *zv; ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(arr), zv){ ids[i++]=(uint32_t)zval_get_long(zv); } ZEND_HASH_FOREACH_END();
+    uint8_t *out; size_t olen; char *err=NULL; int rc = tk_decode(bpe_model_arg(obj), ids, n, &out, &olen, &err); efree(ids);
+    if (rc != 0) { zend_throw_exception(tokenizers_exception_ce, err?err:"decode failed", 0); if(err)free(err); RETURN_THROWS(); }
+    RETVAL_STRINGL((char*)out, olen); free(out);
+}
+
 PHP_FUNCTION(tokenizers_cache_count) { ZEND_PARSE_PARAMETERS_NONE(); RETURN_LONG((zend_long)tk_cache_count()); }
 
 void tk_register_bpe_class(void) {

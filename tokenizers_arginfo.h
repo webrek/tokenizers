@@ -1,10 +1,27 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: b28ea7c4aecda2affae534fdf2b93e67c39987b5 */
+ * Stub hash: b0e5a212f0967105170b4d13ea403229b4a3741c */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_version, 0, 0, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_cache_count, 0, 0, IS_LONG, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_encode, 0, 2, IS_ARRAY, 0)
+	ZEND_ARG_OBJ_INFO(0, t, Tokenizers\\Bpe, 0)
+	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, allowedSpecial, IS_ARRAY, 0, "[]")
+	ZEND_ARG_TYPE_MASK(0, disallowedSpecial, MAY_BE_ARRAY|MAY_BE_STRING, "\"all\"")
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_decode, 0, 2, IS_STRING, 0)
+	ZEND_ARG_OBJ_INFO(0, t, Tokenizers\\Bpe, 0)
+	ZEND_ARG_TYPE_INFO(0, ids, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_tokenizers_count, 0, 2, IS_LONG, 0)
+	ZEND_ARG_OBJ_INFO(0, t, Tokenizers\\Bpe, 0)
+	ZEND_ARG_TYPE_INFO(0, text, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_Tokenizers_Bpe_fromTiktokenFile, 0, 2, Tokenizers\\Bpe, 0)
@@ -46,6 +63,9 @@ ZEND_END_ARG_INFO()
 
 ZEND_FUNCTION(tokenizers_version);
 ZEND_FUNCTION(tokenizers_cache_count);
+ZEND_FUNCTION(tokenizers_encode);
+ZEND_FUNCTION(tokenizers_decode);
+ZEND_FUNCTION(tokenizers_count);
 ZEND_METHOD(Tokenizers_Bpe, fromTiktokenFile);
 ZEND_METHOD(Tokenizers_Bpe, fromVocab);
 ZEND_METHOD(Tokenizers_Bpe, encode);
@@ -59,6 +79,9 @@ ZEND_METHOD(Tokenizers_Bpe, name);
 static const zend_function_entry ext_functions[] = {
 	ZEND_FE(tokenizers_version, arginfo_tokenizers_version)
 	ZEND_FE(tokenizers_cache_count, arginfo_tokenizers_cache_count)
+	ZEND_FE(tokenizers_encode, arginfo_tokenizers_encode)
+	ZEND_FE(tokenizers_decode, arginfo_tokenizers_decode)
+	ZEND_FE(tokenizers_count, arginfo_tokenizers_count)
 	ZEND_FE_END
 };
 
