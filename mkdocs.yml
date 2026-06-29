@@ -5,7 +5,7 @@ site_description: >-
   their official APIs.
 site_author: webrek
 
-# Adjust these to your real GitHub repo / Pages URL before publishing.
+# Published under github.com/webrek/tokenizers (matches the Composer vendor name).
 site_url: https://webrek.github.io/tokenizers/
 repo_url: https://github.com/webrek/tokenizers
 repo_name: webrek/tokenizers
