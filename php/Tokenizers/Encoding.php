@@ -172,6 +172,7 @@ final class Encoding
                 }
             }
 
+            $opts['addPrefixSpace'] = true; // spec default; overridden below if a Metaspace pre-tokenizer is present
             if ($metaspace !== null) {
                 // Validate the replacement character: only ▁ (U+2581) is supported in v1.
                 $replacement = $metaspace['replacement'] ?? "\xE2\x96\x81";
