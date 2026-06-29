@@ -122,7 +122,7 @@ $ids = $enc->encode('<|endoftext|> hello', allowedSpecial: 'all');
 ### Procedural API
 
 ```php
-use Tokenizers\Bpe;
+use Tokenizers\{Bpe, Encoding};
 
 $bpe  = Encoding::load('cl100k_base');    // returns a Bpe instance
 
@@ -166,7 +166,7 @@ Built-in encodings are downloaded from OpenAI's public CDN on first use and
 checksum-verified. They are **never redistributed** with the extension. The cache
 location is selected in this order:
 
-1. `$TOKENIZERS_CACHE_DIR`
+1. `$TOKENIZERS_CACHE_DIR/tokenizers`
 2. `$XDG_CACHE_HOME/tokenizers`
 3. `$HOME/.cache/tokenizers`
 4. `sys_get_temp_dir()/tokenizers`
@@ -206,6 +206,8 @@ for every subsequent request in that worker — this is the primary memory win.
 | `tokenizers_count(Bpe $t, string $text): int` | Count tokens |
 | `tokenizers_cache_count(): int` | Number of models currently held in the process-global cache |
 | `tokenizers_version(): string` | Extension version string |
+
+The constant `\Tokenizers\VERSION` (string) holds the same version value.
 
 ## Roadmap
 
