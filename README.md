@@ -35,8 +35,10 @@ the committed fixture set fails CI.
 ### Not supported locally (no public tokenizer)
 
 **Claude 3 and later** and **Gemini** do not publish their tokenizers. For token
-counts, call the provider's `count_tokens` API directly. A Phase 3 companion PHP
-library that wraps those APIs is planned; it will not require this extension.
+counts, call the provider's `count_tokens` API directly. The Phase 3 companion
+PHP classes (`Tokenizers\Remote\Anthropic`, `Tokenizers\Remote\Gemini`,
+`Tokenizers\TokenCounter`) wrap those APIs and do not require this extension.
+See the "Remote providers (Claude / Gemini)" section below.
 
 ## Requirements
 
@@ -160,6 +162,160 @@ try {
 
 `\Tokenizers\TokenizerException` extends `\RuntimeException`.
 
+## Remote providers (Claude / Gemini)
+
+Claude 3 and later, and Gemini, do not publish their tokenizers. There is no
+local vocabulary file to load — token counts for those models require a live
+call to the provider's API and an API key. Anthropic explicitly advises against
+using tiktoken or any other local approximation for Claude; this companion is
+the supported path.
+
+The three classes live in `php/Tokenizers/Remote/` and are plain PHP — they do
+not require building the C extension, but they do require `ext-curl` and
+`ext-json`. They intentionally do **not** pull in `anthropic-ai/sdk` or any
+HTTP library (Guzzle, etc.); raw curl only.
+
+### Installation (remote classes only)
+
+The remote classes are autoloaded if you use Composer, or you can require them
+manually:
+
+```php
+require '/path/to/php/Tokenizers/Remote/Http.php';          // Transport interface
+require '/path/to/php/Tokenizers/Remote/CurlTransport.php';
+require '/path/to/php/Tokenizers/Remote/Anthropic.php';
+require '/path/to/php/Tokenizers/Remote/Gemini.php';
+// For the unified facade:
+require '/path/to/php/Tokenizers/TokenCounter.php';
+```
+
+### Environment variables
+
+| Provider | Env var(s) | Constructor override |
+|---|---|---|
+| Anthropic | `ANTHROPIC_API_KEY` | `new Anthropic(apiKey: '...')` |
+| Gemini | `GEMINI_API_KEY` then `GOOGLE_API_KEY` | `new Gemini(apiKey: '...')` |
+
+The constructor argument takes priority over the environment; the key is read
+from the environment at construction time if the argument is omitted or `null`.
+A missing key throws `\Tokenizers\TokenizerException` at call time, not at
+construction time.
+
+### Usage
+
+**Anthropic** — count tokens for one user turn:
+
+```php
+use Tokenizers\Remote\Anthropic;
+
+$n = (new Anthropic(apiKey: 'sk-ant-...'))->countTokens('claude-opus-4-8', 'Hello, world!');
+// or read key from ANTHROPIC_API_KEY:
+$n = (new Anthropic())->countTokens('claude-opus-4-8', 'Hello, world!');
+echo $n; // => positive int (exact as of the model's current tokenizer)
+```
+
+Pass a full messages array and an optional system prompt:
+
+```php
+$n = (new Anthropic())->countTokens(
+    'claude-opus-4-8',
+    [['role' => 'user', 'content' => 'Hello'], ['role' => 'assistant', 'content' => 'Hi!']],
+    system: 'You are a helpful assistant.',
+);
+```
+
+**Gemini** — count tokens for a text prompt:
+
+```php
+use Tokenizers\Remote\Gemini;
+
+$n = (new Gemini())->countTokens('gemini-1.5-flash', 'Hello, world!');
+// GEMINI_API_KEY (or GOOGLE_API_KEY) must be set, or pass apiKey: '...'
+echo $n; // => positive int
+```
+
+**TokenCounter** — unified facade that routes to the right backend by model name:
+
+```php
+use Tokenizers\TokenCounter;
+
+$tc = new TokenCounter();                            // lazy-initialises backends from env vars
+echo $tc->count('claude-opus-4-8', $text);          // => remote Anthropic call
+echo $tc->count('gemini-1.5-flash', $text);         // => remote Gemini call
+echo $tc->count('cl100k_base', $text);              // => local BPE (no network, no key needed)
+```
+
+`TokenCounter::route(string $model): string` returns `'anthropic'`, `'gemini'`,
+or `'local'` without making any network call — useful for branching logic.
+
+### API reference: remote classes
+
+#### `\Tokenizers\Remote\Anthropic`
+
+```
+__construct(
+    ?string   $apiKey    = null,    // falls back to ANTHROPIC_API_KEY env var
+    ?Transport $transport = null,   // defaults to CurlTransport; injectable for testing
+    string    $version   = '2023-06-01',
+    int       $timeout   = 30,
+): void
+
+countTokens(string $model, string|array $messages, ?string $system = null): int
+```
+
+`$messages` can be a plain string (treated as one user turn) or a full
+`[['role' => ..., 'content' => ...], ...]` array. Throws
+`\Tokenizers\TokenizerException` on missing key, non-2xx response, or malformed
+response body.
+
+#### `\Tokenizers\Remote\Gemini`
+
+```
+__construct(
+    ?string    $apiKey    = null,   // falls back to GEMINI_API_KEY, then GOOGLE_API_KEY
+    ?Transport $transport = null,
+    int        $timeout   = 30,
+): void
+
+countTokens(string $model, string $text): int
+```
+
+The `$model` argument accepts both `'gemini-1.5-flash'` and
+`'models/gemini-1.5-flash'` — the leading `models/` prefix is normalised
+automatically.
+
+#### `\Tokenizers\TokenCounter`
+
+```
+__construct(?Anthropic $anthropic = null, ?Gemini $gemini = null): void
+
+static route(string $model): string   // 'anthropic' | 'gemini' | 'local'
+
+count(string $model, string $text, ?string $provider = null): int
+```
+
+Pass `$provider` explicitly to override the auto-routing (e.g. `'anthropic'`,
+`'gemini'`, or `'local'`). Throws `\Tokenizers\TokenizerException` for unknown
+providers.
+
+### Honest boundaries
+
+- **Network and key required.** There is no offline path for Claude or Gemini
+  token counts.
+- **Exact only as of the provider's current tokenizer.** Anthropic and Google
+  can update their internal tokenizers; this library always reflects whatever
+  the live API returns.
+- **Dependency.** `ext-curl` (built-in on most PHP installations) and
+  `ext-json`. No Composer packages, no vendored HTTP library.
+
+### If you already use `anthropic-ai/sdk`
+
+Callers who already pull in `anthropic-ai/sdk` can call
+`$client->messages->countTokens(...)` directly — there is no need to also use
+this companion. The companion exists for projects that want a zero-dependency
+path (raw curl only) or that need unified routing across Anthropic, Gemini, and
+local BPE models via `TokenCounter`.
+
 ## Vocabulary caching
 
 Built-in encodings are downloaded from OpenAI's public CDN on first use and
@@ -214,8 +370,9 @@ The constant `\Tokenizers\VERSION` (string) holds the same version value.
 - **Phase 1 (current — v0.1.0):** Byte-level BPE, `cl100k_base`, `o200k_base`,
   HuggingFace BPE `tokenizer.json`. O(n log n) merge. Tiktoken-conformant.
 - **Phase 2:** WordPiece and Unigram algorithms → BERT, T5, and related models.
-- **Phase 3:** Claude / Gemini API companion — a pure-PHP library that calls the
-  provider `count_tokens` endpoints; does not require this extension.
+- **Phase 3 (done):** Claude / Gemini API companion — a pure-PHP library that
+  calls the provider `count_tokens` endpoints; does not require this extension.
+  See "Remote providers" section above.
 
 ## License
 
