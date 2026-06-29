@@ -36,10 +36,10 @@ int tk_wordpiece_encode(const tk_model *m,const char *text,size_t len,const tk_w
                 if(end<=start) break;
             }
             if(best_id==TK_RANK_MAX){ bad=1; break; }
-            if(no==cap){cap=cap?cap*2:16; ids=realloc(ids,cap*sizeof(uint32_t));}
+            if(no==cap){cap=cap?cap*2:16; uint32_t *t=realloc(ids,cap*sizeof(uint32_t)); if(!t){ free(ids); free(norm); free(sp); *out_ids=NULL; *n_out=0; return -1; } ids=t;}
             ids[no++]=best_id; start=best_end;
         }
-        if(bad){ no=emit_start; if(no==cap){cap=cap?cap*2:16; ids=realloc(ids,cap*sizeof(uint32_t));} ids[no++]=o->unk_id; }
+        if(bad){ no=emit_start; if(no==cap){cap=cap?cap*2:16; uint32_t *t=realloc(ids,cap*sizeof(uint32_t)); if(!t){ free(ids); free(norm); free(sp); *out_ids=NULL; *n_out=0; return -1; } ids=t;} ids[no++]=o->unk_id; }
     }
     free(norm); free(sp);
     *out_ids=ids; *n_out=no; return 0;

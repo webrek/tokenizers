@@ -12,7 +12,7 @@ static uint32_t u8_next(const unsigned char *s, size_t len, size_t *i){
     *i+=n; return c;
 }
 static void u8_emit(char **buf,size_t *blen,size_t *bcap,uint32_t c){
-    if(*blen+4>*bcap){*bcap=*bcap?*bcap*2:64;*buf=realloc(*buf,*bcap);}
+    if(*blen+4>*bcap){ size_t ncap=*bcap?*bcap*2:64; char *t=realloc(*buf,ncap); if(!t) return; *buf=t; *bcap=ncap; }
     char *o=*buf+*blen;
     if(c<0x80){o[0]=c;*blen+=1;}
     else if(c<0x800){o[0]=0xC0|(c>>6);o[1]=0x80|(c&0x3F);*blen+=2;}
@@ -31,10 +31,22 @@ static uint32_t to_lower(uint32_t c){
     return c;
 }
 static int is_space(uint32_t c){ return c==' '||c=='\t'||c=='\n'||c=='\r'||c==0x0c||c==0xA0; }
-static int is_control(uint32_t c){ return (c<0x20&&!is_space(c))||c==0x7f; }
+static int is_control(uint32_t c){ return (c<0x20&&!is_space(c))||c==0x7f||(c>=0x80&&c<=0x9F); }
 static int is_cjk(uint32_t c){ return (c>=0x4E00&&c<=0x9FFF)||(c>=0x3400&&c<=0x4DBF)||(c>=0xF900&&c<=0xFAFF)||(c>=0x20000&&c<=0x2A6DF); }
 static int is_punct(uint32_t c){
     if((c>=33&&c<=47)||(c>=58&&c<=64)||(c>=91&&c<=96)||(c>=123&&c<=126)) return 1; /* ASCII punct */
+    return 0;
+}
+
+/* Safe span append: reallocs into temp; returns 0 on success, -1 on OOM (span skipped, old sp intact) */
+static int sp_push(tk_span **sp, size_t *ns, size_t *scap, size_t start, size_t end){
+    if(*ns==*scap){
+        size_t ncap=*scap?*scap*2:16;
+        tk_span *t=realloc(*sp,ncap*sizeof(tk_span));
+        if(!t) return -1;
+        *sp=t; *scap=ncap;
+    }
+    (*sp)[*ns].start=start; (*sp)[*ns].end=end; (*ns)++;
     return 0;
 }
 
@@ -43,12 +55,12 @@ int tk_bert_normalize(const char *text,size_t len,int lowercase,int strip_accent
     char *buf=NULL; size_t blen=0,bcap=0;
     tk_span *sp=NULL; size_t ns=0,scap=0;
     int in_word=0; size_t word_start=0;
-    #define ENDWORD() do{ if(in_word){ if(ns==scap){scap=scap?scap*2:16;sp=realloc(sp,scap*sizeof(tk_span));} sp[ns].start=word_start; sp[ns].end=blen; ns++; in_word=0;} }while(0)
-    #define SOLO(emitc) do{ ENDWORD(); size_t s0=blen; u8_emit(&buf,&blen,&bcap,(emitc)); if(ns==scap){scap=scap?scap*2:16;sp=realloc(sp,scap*sizeof(tk_span));} sp[ns].start=s0; sp[ns].end=blen; ns++; }while(0)
+    #define ENDWORD() do{ if(in_word){ sp_push(&sp,&ns,&scap,word_start,blen); in_word=0;} }while(0)
+    #define SOLO(emitc) do{ ENDWORD(); size_t s0=blen; u8_emit(&buf,&blen,&bcap,(emitc)); sp_push(&sp,&ns,&scap,s0,blen); }while(0)
     size_t i=0;
     while(i<len){
         uint32_t c=u8_next((const unsigned char*)text,len,&i);
-        if(c==0||is_control(c)) continue;                 /* drop control/replacement */
+        if(c==0||c==0xFFFD||is_control(c)) continue;      /* drop NUL, replacement char (U+FFFD), and controls */
         if(is_space(c)){ ENDWORD(); continue; }
         if(handle_cjk && is_cjk(c)){ SOLO(c); continue; }
         if(is_punct(c)){ SOLO(c); continue; }
