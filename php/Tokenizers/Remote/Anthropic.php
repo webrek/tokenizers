@@ -1,6 +1,7 @@
 <?php
 namespace Tokenizers\Remote;
 use Tokenizers\TokenizerException;
+require_once __DIR__ . '/../TokenizerException.php';
 final class Anthropic {
     private string $version; private int $timeout; private ?string $apiKey; private Transport $transport;
     public function __construct(?string $apiKey = null, ?Transport $transport = null, string $version = '2023-06-01', int $timeout = 30) {

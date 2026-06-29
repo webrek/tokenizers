@@ -4,6 +4,8 @@ namespace Tokenizers;
 use Tokenizers\Remote\Anthropic;
 use Tokenizers\Remote\Gemini;
 
+require_once __DIR__ . '/TokenizerException.php';
+
 final class TokenCounter
 {
     private ?Anthropic $anthropic;

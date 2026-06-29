@@ -1,6 +1,7 @@
 <?php
 namespace Tokenizers\Remote;
 use Tokenizers\TokenizerException;
+require_once __DIR__ . '/../TokenizerException.php';
 final class Gemini {
     private int $timeout; private ?string $apiKey; private Transport $transport;
     public function __construct(?string $apiKey = null, ?Transport $transport = null, int $timeout = 30) {

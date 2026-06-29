@@ -1,6 +1,7 @@
 <?php
 namespace Tokenizers\Remote;
 use Tokenizers\TokenizerException;
+require_once __DIR__ . '/../TokenizerException.php';
 final class CurlTransport implements Transport {
     public function post(string $url, array $headers, string $body, int $timeout): array {
         if (!\function_exists('curl_init')) throw new TokenizerException('ext-curl is required for remote token counting');
