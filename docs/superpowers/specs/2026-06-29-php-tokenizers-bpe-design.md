@@ -191,7 +191,7 @@ Conformance is where most BPE ports fail. The suite is the primary deliverable's
 - Standard PHP extension layout: `config.m4`, `config.w32`, `php_tokenizers.h`, `tokenizers.c` (+ split source files for loaders/engine), `tokenizers.stub.php` for arginfo.
 - **PHP 8.3+**, **NTS and ZTS** both supported.
 - CI matrix: Linux + macOS × NTS + ZTS × PHP 8.3 + 8.4.
-- Reuses PHP's bundled **PCRE2** (no new dependency).
+- Uses **PCRE2** for the pre-tokenizer. **Update (2026-06-29):** the installed PHP does not ship the bundled `pcre2.h`, so the extension links the **system `libpcre2-8`** (via `pcre2-config`). Build dep: `libpcre2-dev`; runtime dep: `libpcre2-8`. This does not affect the no-Rust / no-`ffi.enable` moat.
 - Publish to **PECL** and support **PIE** install. Prebuilt binaries are a follow-up (important for adoption but not blocking v1 correctness).
 
 ## 11. Risks & mitigations

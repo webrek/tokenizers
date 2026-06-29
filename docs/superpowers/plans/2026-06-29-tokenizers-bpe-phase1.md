@@ -12,7 +12,7 @@
 
 - **PHP version floor:** 8.3. Must build and pass on PHP 8.3 and 8.4.
 - **Thread safety:** must build and pass under both NTS and ZTS.
-- **No new runtime dependencies:** use PHP's bundled PCRE2; do **not** link a second regex engine. No Rust toolchain. The HF `tokenizer.json` parser uses PHP's native `json_decode` in the bundled shim (no JSON parser in C).
+- **Regex engine / dependencies:** the pre-tokenizer uses PCRE2. **Decision (2026-06-29, approved by Arturo):** because the installed PHP (Homebrew 8.3) does not ship the bundled PCRE2 development header (`pcre2.h`), the extension links the **system `libpcre2-8`** (located via `pcre2-config`). This is the standard approach for PHP extensions needing raw PCRE2. The real moat (no Rust toolchain, works where `ffi.enable` is off) is unchanged. No Rust. The HF `tokenizer.json` parser uses PHP's native `json_decode` in the bundled shim (no JSON parser in C). Build/runtime dependency: `libpcre2-8` (+ `libpcre2-dev` headers to build). Conformance (Task 14) validates that system-PCRE2 semantics match the tiktoken reference.
 - **Extension name:** `tokenizers`. PHP namespace: `\Tokenizers\`. Primary class: `\Tokenizers\Bpe`. Exception: `\Tokenizers\TokenizerException` (extends `\RuntimeException`).
 - **Never redistribute vocab files:** built-in encodings are downloaded + cached on first use by the PHP shim from their official URLs and checksum-verified.
 - **Conformance is a release blocker:** any byte-level diff vs the committed reference fixtures fails the build.
