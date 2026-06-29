@@ -124,6 +124,7 @@ final class Encoding
             }
             // BertNormalizer block
             $normalizer    = $j['normalizer'] ?? [];
+            if (!is_array($normalizer)) $normalizer = [];
             $lowercase     = (bool)($normalizer['lowercase'] ?? true);
             $stripRaw      = $normalizer['strip_accents'] ?? null;
             // null means "derive from lowercase"
@@ -150,7 +151,7 @@ final class Encoding
         if ($lines === false) throw new TokenizerException("cannot read $path");
         $vocab = [];
         foreach ($lines as $id => $token) {
-            $vocab[$token] = $id;
+            $vocab[rtrim($token, "\r")] = $id; // tolerate CRLF vocab.txt (FILE_IGNORE_NEW_LINES strips \n only)
         }
         return WordPiece::fromVocab($vocab, $opts);
     }
