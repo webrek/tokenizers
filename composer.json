@@ -1,9 +1,18 @@
 {
     "name": "webrek/tokenizers",
-    "description": "Native byte-level BPE (tiktoken-compatible: cl100k_base/o200k_base) plus WordPiece and Unigram tokenizers for PHP 8.3+, with a process-shared vocab cache. Loads HuggingFace tokenizer.json models.",
+    "description": "Native byte-level BPE (tiktoken-compatible: cl100k_base/o200k_base) plus WordPiece and Unigram tokenizers for PHP 8.3+, with a process-shared vocab cache. Loads HuggingFace tokenizer.json models and counts Claude/Gemini tokens via their APIs.",
     "type": "php-ext",
-    "keywords": ["tokenizer", "bpe", "tiktoken", "wordpiece", "unigram", "llm", "tokens", "extension"],
+    "keywords": ["tokenizer", "tokenization", "bpe", "tiktoken", "wordpiece", "unigram", "llm", "tokens", "claude", "gemini", "nlp", "pecl", "extension"],
     "license": "Apache-2.0",
+    "homepage": "https://webrek.github.io/tokenizers/",
+    "authors": [
+        { "name": "webrek", "homepage": "https://github.com/webrek" }
+    ],
+    "support": {
+        "issues": "https://github.com/webrek/tokenizers/issues",
+        "source": "https://github.com/webrek/tokenizers",
+        "docs": "https://webrek.github.io/tokenizers/"
+    },
     "require": {
         "php": ">=8.3"
     },
