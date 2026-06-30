@@ -1,0 +1,9 @@
+# Normalize line endings to LF across the repo
+* text=auto eol=lf
+
+# Keep the Composer/source archive (dist) lean: exclude dev-only files
+/.github         export-ignore
+/.gitattributes  export-ignore
+/docs            export-ignore
+mkdocs.yml       export-ignore
+PUBLISHING.md    export-ignore
