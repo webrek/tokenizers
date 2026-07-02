@@ -1,0 +1,1316 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Native PHP extension for byte-exact LLM token counting (BPE, WordPiece, Unigram) plus a pure-PHP companion that counts Claude and Gemini tokens via their official APIs.">
+      
+      
+        <meta name="author" content="webrek">
+      
+      
+        <link rel="canonical" href="https://webrek.github.io/tokenizers/guides/estimating-costs/">
+      
+      
+        <link rel="prev" href="../loading-models/">
+      
+      
+        <link rel="next" href="../remote-providers/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Estimating LLM costs - tokenizers</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#estimating-and-budgeting-llm-costs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="tokenizers" class="md-header__button md-logo" aria-label="tokenizers" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            tokenizers
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Estimating LLM costs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/webrek/tokenizers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    webrek/tokenizers
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="tokenizers" class="md-nav__button md-logo" aria-label="tokenizers" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    tokenizers
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/webrek/tokenizers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    webrek/tokenizers
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../loading-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loading models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estimating LLM costs
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estimating LLM costs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-why-count-tokens-before-you-call" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Why count tokens before you call
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-estimate-the-cost-of-a-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Estimate the cost of a prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-budget-a-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Budget a batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-stay-within-the-context-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Stay within the context window
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Stay within the context window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-does-this-prompt-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check: does this prompt fit?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truncate-to-n-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truncate to N tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-track-spend-per-clientfeature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Track spend per client/feature
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-counting-for-claude-and-gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Counting for Claude and Gemini
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Counting for Claude and Gemini">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-consideration-for-remote-counting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance consideration for remote counting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remote-providers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remote providers (Claude / Gemini)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Status & Limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-why-count-tokens-before-you-call" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Why count tokens before you call
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-estimate-the-cost-of-a-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Estimate the cost of a prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-budget-a-batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Budget a batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-stay-within-the-context-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Stay within the context window
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Stay within the context window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-does-this-prompt-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check: does this prompt fit?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#truncate-to-n-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truncate to N tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-track-spend-per-clientfeature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Track spend per client/feature
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-counting-for-claude-and-gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Counting for Claude and Gemini
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Counting for Claude and Gemini">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-consideration-for-remote-counting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance consideration for remote counting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="estimating-and-budgeting-llm-costs">Estimating and Budgeting LLM Costs<a class="headerlink" href="#estimating-and-budgeting-llm-costs" title="Permanent link">&para;</a></h1>
+<p>You pay per token. That means every prompt you send to a model has a calculable
+cost — before you ever make the API call. Counting tokens locally, in PHP,
+before you call the model lets you:</p>
+<ul>
+<li><strong>Budget accurately.</strong> Know what a batch of requests will cost before
+  committing.</li>
+<li><strong>Enforce context limits.</strong> Every model has a maximum context window; a prompt
+  that exceeds it fails. Catch that locally, not at the provider.</li>
+<li><strong>Route intelligently.</strong> A 200-token prompt may be fine for an expensive model;
+  a 10,000-token prompt may warrant a cheaper model or a smaller input.</li>
+</ul>
+<p>This guide walks through a realistic scenario: an AI writing agency that
+generates copy variants for multiple clients and features, and needs to track
+spend per client before the month's bill arrives.</p>
+<hr />
+<h2 id="1-why-count-tokens-before-you-call">1. Why count tokens before you call<a class="headerlink" href="#1-why-count-tokens-before-you-call" title="Permanent link">&para;</a></h2>
+<p>Most LLM providers charge on a per-token basis split between input (prompt) and
+output (completion). A large prompt — a long system message, a user document, a
+few-shot example set — can quietly cost more than the model output itself.</p>
+<p>Counting tokens locally costs nothing and takes microseconds. The alternative —
+sending the request, reading the bill — costs money and time. Front-load the
+math.</p>
+<p>Three practical reasons to count before calling:</p>
+<ol>
+<li><strong>Budgeting.</strong> "This feature will process 50,000 prompts today" becomes a
+   real dollar estimate rather than a guess.</li>
+<li><strong>Context-window enforcement.</strong> If <code>countTokens($text) &gt; $maxContextTokens</code>,
+   you can truncate, summarise, or reject the input before it fails at the
+   provider with a cryptic error.</li>
+<li><strong>Model routing.</strong> Token count is one of the cheapest signals for routing:
+   short prompts to a fast/cheap model, long ones to a model with a bigger
+   window.</li>
+</ol>
+<hr />
+<h2 id="2-estimate-the-cost-of-a-prompt">2. Estimate the cost of a prompt<a class="headerlink" href="#2-estimate-the-cost-of-a-prompt" title="Permanent link">&para;</a></h2>
+<p>Load an <code>Encoding</code>, count the tokens in your prompt text, and multiply by the
+model's input price. Prices vary by model and change over time — <strong>always
+confirm the current price in the provider's official pricing page.</strong> The numbers
+below are illustrative only.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">require_once</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">&#39;/vendor/autoload.php&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">use</span> <span class="nx">Tokenizers\Encoding</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">// Load the cl100k_base encoding (used by GPT-4, o1, o3, and similar models).</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1">// The vocab file is downloaded on first use and cached locally; subsequent</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1">// calls are nearly instant.</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nv">$enc</span> <span class="o">=</span> <span class="nx">Encoding</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">/**</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="sd"> * Estimate the input cost of a single piece of text.</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="sd"> *</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="sd"> * @param  \Tokenizers\Bpe $enc            A loaded Encoding instance.</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="sd"> * @param  string          $text           The prompt text to measure.</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="sd"> * @param  float           $pricePerMillion Price per one million INPUT tokens</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="sd"> *                                          in USD — confirm with your provider.</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="sd"> * @return array{tokens: int, cost: float}</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="sd"> */</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="k">function</span> <span class="nf">estimateCost</span><span class="p">(</span><span class="nx">\Tokenizers\Bpe</span> <span class="nv">$enc</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$text</span><span class="p">,</span> <span class="nx">float</span> <span class="nv">$pricePerMillion</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="p">{</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="nv">$tokens</span> <span class="o">=</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$text</span><span class="p">);</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="nv">$cost</span>   <span class="o">=</span> <span class="p">(</span><span class="nv">$tokens</span> <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$pricePerMillion</span><span class="p">;</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;tokens&#39;</span> <span class="o">=&gt;</span> <span class="nv">$tokens</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span> <span class="o">=&gt;</span> <span class="nv">$cost</span><span class="p">];</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="p">}</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="c1">// -------------------------------------------------------------------------</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="c1">// Example: a system message + user document for a GPT-4-class model.</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="c1">// Replace $inputPricePerMillion with the current figure from your provider.</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="c1">// -------------------------------------------------------------------------</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="nv">$inputPricePerMillion</span> <span class="o">=</span> <span class="mf">5.00</span><span class="p">;</span> <span class="c1">// ILLUSTRATIVE — verify at your provider&#39;s pricing page</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="nv">$systemPrompt</span> <span class="o">=</span> <span class="s1">&#39;You are a professional copywriter. Write in a clear, engaging style.&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="nv">$userDocument</span> <span class="o">=</span> <span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">&#39;/path/to/client/brief.txt&#39;</span><span class="p">);</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="nv">$fullPrompt</span>   <span class="o">=</span> <span class="nv">$systemPrompt</span> <span class="o">.</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">.</span> <span class="nv">$userDocument</span><span class="p">;</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="nv">$estimate</span> <span class="o">=</span> <span class="nx">estimateCost</span><span class="p">(</span><span class="nv">$enc</span><span class="p">,</span> <span class="nv">$fullPrompt</span><span class="p">,</span> <span class="nv">$inputPricePerMillion</span><span class="p">);</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="nb">printf</span><span class="p">(</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>    <span class="s2">&quot;Prompt: %d tokens  →  estimated input cost: $%.6f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="nv">$estimate</span><span class="p">[</span><span class="s1">&#39;tokens&#39;</span><span class="p">],</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>    <span class="nv">$estimate</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">]</span>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="p">);</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="c1">// e.g. &quot;Prompt: 1423 tokens  →  estimated input cost: $0.007115&quot;</span>
+</code></pre></div>
+<p><strong>Formula:</strong> <code>cost = (tokenCount / 1_000_000) × pricePerMillion</code></p>
+<p>This gives you the estimated <em>input</em> cost. Output (completion) tokens are
+usually priced separately and at a different rate; you need to estimate or cap
+output length separately.</p>
+<blockquote>
+<p><strong>Note on <code>countTokens</code> vs <code>encode</code>:</strong> <code>countTokens</code> returns only an integer;
+it never allocates the full token-id array. For cost estimation, always prefer
+<code>countTokens</code> — it is measurably faster on long texts.</p>
+</blockquote>
+<hr />
+<h2 id="3-budget-a-batch">3. Budget a batch<a class="headerlink" href="#3-budget-a-batch" title="Permanent link">&para;</a></h2>
+<p>The agency needs to generate 100 copy variants from a set of briefs. Before
+sending a single API request, sum the token counts across all inputs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">require_once</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">&#39;/vendor/autoload.php&#39;</span><span class="p">;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">use</span> <span class="nx">Tokenizers\Encoding</span><span class="p">;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nv">$enc</span> <span class="o">=</span> <span class="nx">Encoding</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1">// ILLUSTRATIVE prices — replace with current figures from your provider.</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nv">$inputPricePerMillion</span>  <span class="o">=</span> <span class="mf">5.00</span><span class="p">;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="nv">$outputPricePerMillion</span> <span class="o">=</span> <span class="mf">15.00</span><span class="p">;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="nv">$estimatedOutputTokensPerVariant</span> <span class="o">=</span> <span class="mi">300</span><span class="p">;</span> <span class="c1">// your expected completion length</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1">// Simulate 100 brief texts (in practice, load these from a database or files).</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="nv">$briefs</span> <span class="o">=</span> <span class="nb">array_map</span><span class="p">(</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="nx">fn</span><span class="p">(</span><span class="nx">int</span> <span class="nv">$i</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="s2">&quot;Write a compelling product description for item #</span><span class="si">{</span><span class="nv">$i</span><span class="si">}</span><span class="s2">. &quot;</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>                <span class="o">.</span> <span class="s2">&quot;Focus on benefits, tone: professional, length: ~150 words.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="p">);</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="nv">$totalInputTokens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="k">foreach</span> <span class="p">(</span><span class="nv">$briefs</span> <span class="k">as</span> <span class="nv">$brief</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="c1">// countTokens is preferred over encode() here — no id array is built.</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="nv">$totalInputTokens</span> <span class="o">+=</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$brief</span><span class="p">);</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="p">}</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="nv">$totalOutputTokens</span> <span class="o">=</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$briefs</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$estimatedOutputTokensPerVariant</span><span class="p">;</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="nv">$inputCost</span>  <span class="o">=</span> <span class="p">(</span><span class="nv">$totalInputTokens</span>  <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$inputPricePerMillion</span><span class="p">;</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="nv">$outputCost</span> <span class="o">=</span> <span class="p">(</span><span class="nv">$totalOutputTokens</span> <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$outputPricePerMillion</span><span class="p">;</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="nv">$totalCost</span>  <span class="o">=</span> <span class="nv">$inputCost</span> <span class="o">+</span> <span class="nv">$outputCost</span><span class="p">;</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;Batch summary (100 variants)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;  Total input tokens   : %d</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>   <span class="nv">$totalInputTokens</span><span class="p">);</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;  Est. output tokens   : %d</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>   <span class="nv">$totalOutputTokens</span><span class="p">);</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;  Est. input cost      : $%.4f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$inputCost</span><span class="p">);</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;  Est. output cost     : $%.4f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$outputCost</span><span class="p">);</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;  Est. total cost      : $%.4f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$totalCost</span><span class="p">);</span>
+</code></pre></div>
+<p>This runs in milliseconds, entirely locally. You can add a guard that aborts or
+alerts when <code>$totalCost</code> exceeds a per-job budget threshold before the first
+API call is made.</p>
+<hr />
+<h2 id="4-stay-within-the-context-window">4. Stay within the context window<a class="headerlink" href="#4-stay-within-the-context-window" title="Permanent link">&para;</a></h2>
+<p>Every model specifies a maximum number of tokens it will accept. Exceeding it
+returns an error from the provider. Two common needs: checking whether a prompt
+fits, and truncating it if it does not.</p>
+<h3 id="check-does-this-prompt-fit">Check: does this prompt fit?<a class="headerlink" href="#check-does-this-prompt-fit" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">use</span> <span class="nx">Tokenizers\Encoding</span><span class="p">;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nv">$enc</span> <span class="o">=</span> <span class="nx">Encoding</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="sd">/**</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="sd"> * Returns true if $text fits within $maxTokens.</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="sd"> * Use this as a fast pre-flight check before sending to the model.</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="sd"> */</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">function</span> <span class="nf">fitsInBudget</span><span class="p">(</span><span class="nx">\Tokenizers\Bpe</span> <span class="nv">$enc</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$text</span><span class="p">,</span> <span class="nx">int</span> <span class="nv">$maxTokens</span><span class="p">)</span><span class="o">:</span> <span class="nx">bool</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="p">{</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="k">return</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$text</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nv">$maxTokens</span><span class="p">;</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="p">}</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="nv">$contextWindow</span> <span class="o">=</span> <span class="mi">8</span><span class="nx">_192</span><span class="p">;</span> <span class="c1">// example limit — check your model&#39;s spec</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="nv">$document</span>      <span class="o">=</span> <span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">&#39;/path/to/document.txt&#39;</span><span class="p">);</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">fitsInBudget</span><span class="p">(</span><span class="nv">$enc</span><span class="p">,</span> <span class="nv">$document</span><span class="p">,</span> <span class="nv">$contextWindow</span><span class="p">))</span> <span class="p">{</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>    <span class="c1">// truncate, chunk, or summarise before proceeding</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>    <span class="k">echo</span> <span class="s2">&quot;Document too long — truncation required.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">;</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="truncate-to-n-tokens">Truncate to N tokens<a class="headerlink" href="#truncate-to-n-tokens" title="Permanent link">&para;</a></h3>
+<p>When you need to shorten a text to fit, you can encode, slice the token array,
+then decode back to a string.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">use</span> <span class="nx">Tokenizers\Encoding</span><span class="p">;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">$enc</span> <span class="o">=</span> <span class="nx">Encoding</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="sd">/**</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="sd"> * Truncate $text to at most $maxTokens tokens and return the decoded string.</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd"> *</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="sd"> * IMPORTANT CAVEAT: byte-level BPE can encode a single character as multiple</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sd"> * token IDs, and the character boundaries do not always align with token</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="sd"> * boundaries. Slicing the ID array at an arbitrary position and decoding can</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="sd"> * produce garbled UTF-8 at the cut point — typically one or a few bytes off.</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="sd"> * For most use cases (staying within a context window) this is acceptable.</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="sd"> * If you need a clean UTF-8 cut, additionally strip any trailing replacement</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="sd"> * characters (\u{FFFD}) or use mb_convert_encoding() to coerce the result.</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="sd"> *</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="sd"> * @return string The decoded, token-truncated text. May have a rough boundary.</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="sd"> */</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">function</span> <span class="nf">truncateToTokens</span><span class="p">(</span><span class="nx">\Tokenizers\Bpe</span> <span class="nv">$enc</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$text</span><span class="p">,</span> <span class="nx">int</span> <span class="nv">$maxTokens</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">{</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>    <span class="nv">$ids</span> <span class="o">=</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">encode</span><span class="p">(</span><span class="nv">$text</span><span class="p">);</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>    <span class="k">if</span> <span class="p">(</span><span class="nb">count</span><span class="p">(</span><span class="nv">$ids</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nv">$maxTokens</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>        <span class="k">return</span> <span class="nv">$text</span><span class="p">;</span> <span class="c1">// already fits; skip the decode round-trip</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="p">}</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>    <span class="nv">$truncatedIds</span> <span class="o">=</span> <span class="nb">array_slice</span><span class="p">(</span><span class="nv">$ids</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nv">$maxTokens</span><span class="p">);</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>    <span class="k">return</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">decode</span><span class="p">(</span><span class="nv">$truncatedIds</span><span class="p">);</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="p">}</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="nv">$maxTokens</span> <span class="o">=</span> <span class="mi">4</span><span class="nx">_096</span><span class="p">;</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="nv">$rawText</span>   <span class="o">=</span> <span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">&#39;/path/to/long-document.txt&#39;</span><span class="p">);</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="nv">$fitted</span>    <span class="o">=</span> <span class="nx">truncateToTokens</span><span class="p">(</span><span class="nv">$enc</span><span class="p">,</span> <span class="nv">$rawText</span><span class="p">,</span> <span class="nv">$maxTokens</span><span class="p">);</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;Original: %d tokens → truncated: %d tokens</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>    <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$rawText</span><span class="p">),</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>    <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$fitted</span><span class="p">)</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="p">);</span>
+</code></pre></div>
+<blockquote>
+<p><strong>When not to use truncation:</strong> If the document has meaningful structure
+(sections, JSON, code), slicing by tokens rather than logical boundaries can
+corrupt the content semantically. In those cases, prefer chunking at logical
+delimiters and processing chunks individually.</p>
+</blockquote>
+<hr />
+<h2 id="5-track-spend-per-clientfeature">5. Track spend per client/feature<a class="headerlink" href="#5-track-spend-per-clientfeature" title="Permanent link">&para;</a></h2>
+<p>For an agency, per-client and per-feature cost attribution is essential for
+invoicing and for spotting which features are burning budget.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">require_once</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">&#39;/vendor/autoload.php&#39;</span><span class="p">;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">use</span> <span class="nx">Tokenizers\Encoding</span><span class="p">;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="nv">$enc</span> <span class="o">=</span> <span class="nx">Encoding</span><span class="o">::</span><span class="na">load</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="c1">// ILLUSTRATIVE prices — verify current figures with your provider.</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">const</span> <span class="no">INPUT_PRICE_PER_MILLION</span>  <span class="o">=</span> <span class="mf">5.00</span><span class="p">;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">const</span> <span class="no">OUTPUT_PRICE_PER_MILLION</span> <span class="o">=</span> <span class="mf">15.00</span><span class="p">;</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="sd">/**</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="sd"> * A simple accumulator for token spend across labels (clients, features, etc.).</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="sd"> * This is plain application code — it does not ship with the library.</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="sd"> */</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="k">class</span> <span class="nc">SpendTracker</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">{</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>    <span class="sd">/** @var array&lt;string, array{input_tokens: int, output_tokens: int}&gt; */</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="k">private</span> <span class="k">array</span> <span class="nv">$buckets</span> <span class="o">=</span> <span class="p">[];</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="k">public</span> <span class="k">function</span> <span class="nf">record</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$label</span><span class="p">,</span> <span class="nx">int</span> <span class="nv">$inputTokens</span><span class="p">,</span> <span class="nx">int</span> <span class="nv">$outputTokens</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    <span class="p">{</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">buckets</span><span class="p">[</span><span class="nv">$label</span><span class="p">]))</span> <span class="p">{</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>            <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">buckets</span><span class="p">[</span><span class="nv">$label</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;input_tokens&#39;</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;output_tokens&#39;</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">];</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>        <span class="p">}</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">buckets</span><span class="p">[</span><span class="nv">$label</span><span class="p">][</span><span class="s1">&#39;input_tokens&#39;</span><span class="p">]</span>  <span class="o">+=</span> <span class="nv">$inputTokens</span><span class="p">;</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">buckets</span><span class="p">[</span><span class="nv">$label</span><span class="p">][</span><span class="s1">&#39;output_tokens&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="nv">$outputTokens</span><span class="p">;</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>    <span class="p">}</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>    <span class="sd">/**</span>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="sd">     * Returns a report array keyed by label.</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a><span class="sd">     * Pass $inputPpm and $outputPpm as your current per-million-token prices.</span>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="sd">     *</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="sd">     * @return array&lt;string, array{input_tokens: int, output_tokens: int, est_cost: float}&gt;</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="sd">     */</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a>    <span class="k">public</span> <span class="k">function</span> <span class="nf">report</span><span class="p">(</span><span class="nx">float</span> <span class="nv">$inputPpm</span><span class="p">,</span> <span class="nx">float</span> <span class="nv">$outputPpm</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a>    <span class="p">{</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a>        <span class="nv">$report</span> <span class="o">=</span> <span class="p">[];</span>
+<a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a>
+<a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a>        <span class="k">foreach</span> <span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">buckets</span> <span class="k">as</span> <span class="nv">$label</span> <span class="o">=&gt;</span> <span class="nv">$counts</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a>            <span class="nv">$cost</span> <span class="o">=</span> <span class="p">(</span><span class="nv">$counts</span><span class="p">[</span><span class="s1">&#39;input_tokens&#39;</span><span class="p">]</span>  <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$inputPpm</span>
+<a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a>                  <span class="o">+</span> <span class="p">(</span><span class="nv">$counts</span><span class="p">[</span><span class="s1">&#39;output_tokens&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">)</span> <span class="o">*</span> <span class="nv">$outputPpm</span><span class="p">;</span>
+<a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a>
+<a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a>            <span class="nv">$report</span><span class="p">[</span><span class="nv">$label</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a>                <span class="s1">&#39;input_tokens&#39;</span>  <span class="o">=&gt;</span> <span class="nv">$counts</span><span class="p">[</span><span class="s1">&#39;input_tokens&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a>                <span class="s1">&#39;output_tokens&#39;</span> <span class="o">=&gt;</span> <span class="nv">$counts</span><span class="p">[</span><span class="s1">&#39;output_tokens&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a>                <span class="s1">&#39;est_cost&#39;</span>      <span class="o">=&gt;</span> <span class="nb">round</span><span class="p">(</span><span class="nv">$cost</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+<a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a>            <span class="p">];</span>
+<a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a>        <span class="p">}</span>
+<a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a>
+<a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a>        <span class="k">return</span> <span class="nv">$report</span><span class="p">;</span>
+<a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a>    <span class="p">}</span>
+<a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a><span class="p">}</span>
+<a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a>
+<a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a><span class="c1">// -------------------------------------------------------------------------</span>
+<a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a><span class="c1">// Simulate processing requests across clients and features.</span>
+<a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a><span class="c1">// -------------------------------------------------------------------------</span>
+<a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="nv">$tracker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">SpendTracker</span><span class="p">();</span>
+<a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a>
+<a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a><span class="nv">$jobs</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a>    <span class="p">[</span><span class="s1">&#39;label&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;client:acme/feature:product-descriptions&#39;</span><span class="p">,</span> <span class="s1">&#39;prompt&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Write a product description for a coffee maker.&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a>    <span class="p">[</span><span class="s1">&#39;label&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;client:acme/feature:email-subject-lines&#39;</span><span class="p">,</span>  <span class="s1">&#39;prompt&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Generate 5 email subject lines for a sale event.&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a>    <span class="p">[</span><span class="s1">&#39;label&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;client:globex/feature:product-descriptions&#39;</span><span class="p">,</span><span class="s1">&#39;prompt&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Describe the Globex Series 7 industrial pump.&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-66" name="__codelineno-4-66" href="#__codelineno-4-66"></a>    <span class="p">[</span><span class="s1">&#39;label&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;client:globex/feature:social-posts&#39;</span><span class="p">,</span>        <span class="s1">&#39;prompt&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;Write a LinkedIn post about our Q2 results.&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-67" name="__codelineno-4-67" href="#__codelineno-4-67"></a><span class="p">];</span>
+<a id="__codelineno-4-68" name="__codelineno-4-68" href="#__codelineno-4-68"></a>
+<a id="__codelineno-4-69" name="__codelineno-4-69" href="#__codelineno-4-69"></a><span class="c1">// Assume output tokens = 200 per request (replace with actual completionUsage).</span>
+<a id="__codelineno-4-70" name="__codelineno-4-70" href="#__codelineno-4-70"></a><span class="nv">$estimatedOutputTokens</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>
+<a id="__codelineno-4-71" name="__codelineno-4-71" href="#__codelineno-4-71"></a>
+<a id="__codelineno-4-72" name="__codelineno-4-72" href="#__codelineno-4-72"></a><span class="k">foreach</span> <span class="p">(</span><span class="nv">$jobs</span> <span class="k">as</span> <span class="nv">$job</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-4-73" name="__codelineno-4-73" href="#__codelineno-4-73"></a>    <span class="nv">$inputTokens</span> <span class="o">=</span> <span class="nv">$enc</span><span class="o">-&gt;</span><span class="na">countTokens</span><span class="p">(</span><span class="nv">$job</span><span class="p">[</span><span class="s1">&#39;prompt&#39;</span><span class="p">]);</span>
+<a id="__codelineno-4-74" name="__codelineno-4-74" href="#__codelineno-4-74"></a>    <span class="nv">$tracker</span><span class="o">-&gt;</span><span class="na">record</span><span class="p">(</span><span class="nv">$job</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="nv">$inputTokens</span><span class="p">,</span> <span class="nv">$estimatedOutputTokens</span><span class="p">);</span>
+<a id="__codelineno-4-75" name="__codelineno-4-75" href="#__codelineno-4-75"></a><span class="p">}</span>
+<a id="__codelineno-4-76" name="__codelineno-4-76" href="#__codelineno-4-76"></a>
+<a id="__codelineno-4-77" name="__codelineno-4-77" href="#__codelineno-4-77"></a><span class="c1">// Print report.</span>
+<a id="__codelineno-4-78" name="__codelineno-4-78" href="#__codelineno-4-78"></a><span class="nv">$report</span> <span class="o">=</span> <span class="nv">$tracker</span><span class="o">-&gt;</span><span class="na">report</span><span class="p">(</span><span class="nx">INPUT_PRICE_PER_MILLION</span><span class="p">,</span> <span class="nx">OUTPUT_PRICE_PER_MILLION</span><span class="p">);</span>
+<a id="__codelineno-4-79" name="__codelineno-4-79" href="#__codelineno-4-79"></a>
+<a id="__codelineno-4-80" name="__codelineno-4-80" href="#__codelineno-4-80"></a><span class="k">echo</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Spend Report ===</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">;</span>
+<a id="__codelineno-4-81" name="__codelineno-4-81" href="#__codelineno-4-81"></a><span class="k">foreach</span> <span class="p">(</span><span class="nv">$report</span> <span class="k">as</span> <span class="nv">$label</span> <span class="o">=&gt;</span> <span class="nv">$data</span><span class="p">)</span> <span class="p">{</span>
+<a id="__codelineno-4-82" name="__codelineno-4-82" href="#__codelineno-4-82"></a>    <span class="nb">printf</span><span class="p">(</span>
+<a id="__codelineno-4-83" name="__codelineno-4-83" href="#__codelineno-4-83"></a>        <span class="s2">&quot;%-50s  in: %4d  out: %4d  est: $%.6f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-84" name="__codelineno-4-84" href="#__codelineno-4-84"></a>        <span class="nv">$label</span><span class="p">,</span>
+<a id="__codelineno-4-85" name="__codelineno-4-85" href="#__codelineno-4-85"></a>        <span class="nv">$data</span><span class="p">[</span><span class="s1">&#39;input_tokens&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-86" name="__codelineno-4-86" href="#__codelineno-4-86"></a>        <span class="nv">$data</span><span class="p">[</span><span class="s1">&#39;output_tokens&#39;</span><span class="p">],</span>
+<a id="__codelineno-4-87" name="__codelineno-4-87" href="#__codelineno-4-87"></a>        <span class="nv">$data</span><span class="p">[</span><span class="s1">&#39;est_cost&#39;</span><span class="p">]</span>
+<a id="__codelineno-4-88" name="__codelineno-4-88" href="#__codelineno-4-88"></a>    <span class="p">);</span>
+<a id="__codelineno-4-89" name="__codelineno-4-89" href="#__codelineno-4-89"></a><span class="p">}</span>
+</code></pre></div>
+<p>In production, replace the hardcoded <code>$estimatedOutputTokens</code> with the actual
+<code>usage.completion_tokens</code> (or equivalent) returned in the API response so that
+your tracker captures real numbers after each call.</p>
+<hr />
+<h2 id="6-counting-for-claude-and-gemini">6. Counting for Claude and Gemini<a class="headerlink" href="#6-counting-for-claude-and-gemini" title="Permanent link">&para;</a></h2>
+<p>Claude 3+ and Gemini models do not have a publicly available local tokenizer.
+To count their tokens exactly you must make a network call to the provider's
+dedicated token-counting endpoint. The <code>TokenCounter</code> class handles routing
+automatically: <code>claude-*</code> models go to Anthropic, <code>gemini-*</code> models go to
+Google, and anything else is counted locally via BPE.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">require_once</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">&#39;/vendor/autoload.php&#39;</span><span class="p">;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">use</span> <span class="nx">Tokenizers\TokenCounter</span><span class="p">;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1">// TokenCounter reads API keys from the environment by default:</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1">//   ANTHROPIC_API_KEY  — for claude-* models</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1">//   GEMINI_API_KEY (or GOOGLE_API_KEY)  — for gemini-* models</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1">//</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1">// Pass credentials explicitly when you need to:</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1">//   new TokenCounter(</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1">//       new \Tokenizers\Remote\Anthropic(apiKey: &#39;sk-ant-...&#39;),</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="c1">//       new \Tokenizers\Remote\Gemini(apiKey: &#39;AIza...&#39;)</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1">//   );</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="nv">$counter</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TokenCounter</span><span class="p">();</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="nv">$text</span> <span class="o">=</span> <span class="s1">&#39;Summarise the following legal document in three bullet points.&#39;</span><span class="p">;</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="c1">// Local BPE — no network call, no API key needed.</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="nv">$localCount</span> <span class="o">=</span> <span class="nv">$counter</span><span class="o">-&gt;</span><span class="na">count</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">,</span> <span class="nv">$text</span><span class="p">);</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;cl100k_base (local):   %d tokens</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$localCount</span><span class="p">);</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="c1">// Remote — makes a network call to the Anthropic token-count endpoint.</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="nv">$claudeCount</span> <span class="o">=</span> <span class="nv">$counter</span><span class="o">-&gt;</span><span class="na">count</span><span class="p">(</span><span class="s1">&#39;claude-opus-4-8&#39;</span><span class="p">,</span> <span class="nv">$text</span><span class="p">);</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;claude-opus-4-8 (API): %d tokens</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$claudeCount</span><span class="p">);</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="c1">// Remote — makes a network call to the Google token-count endpoint.</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="nv">$geminiCount</span> <span class="o">=</span> <span class="nv">$counter</span><span class="o">-&gt;</span><span class="na">count</span><span class="p">(</span><span class="s1">&#39;gemini-1.5-flash&#39;</span><span class="p">,</span> <span class="nv">$text</span><span class="p">);</span>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="nb">printf</span><span class="p">(</span><span class="s2">&quot;gemini-1.5-flash (API): %d tokens</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nv">$geminiCount</span><span class="p">);</span>
+</code></pre></div>
+<p>You can also check which backend a model will use without making any network
+call:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="cp">&lt;?php</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">use</span> <span class="nx">Tokenizers\TokenCounter</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">echo</span> <span class="nx">TokenCounter</span><span class="o">::</span><span class="na">route</span><span class="p">(</span><span class="s1">&#39;claude-opus-4-8&#39;</span><span class="p">);</span>  <span class="c1">// &#39;anthropic&#39;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">echo</span> <span class="nx">TokenCounter</span><span class="o">::</span><span class="na">route</span><span class="p">(</span><span class="s1">&#39;gemini-1.5-flash&#39;</span><span class="p">);</span> <span class="c1">// &#39;gemini&#39;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">echo</span> <span class="nx">TokenCounter</span><span class="o">::</span><span class="na">route</span><span class="p">(</span><span class="s1">&#39;cl100k_base&#39;</span><span class="p">);</span>      <span class="c1">// &#39;local&#39;</span>
+</code></pre></div>
+<h3 id="performance-consideration-for-remote-counting">Performance consideration for remote counting<a class="headerlink" href="#performance-consideration-for-remote-counting" title="Permanent link">&para;</a></h3>
+<p>Each call to <code>count()</code> for a remote model makes a real HTTP request. For large
+batches:</p>
+<ul>
+<li><strong>Sample, don't count everything.</strong> Count a representative subset of your
+  prompts and extrapolate. If your prompts are structurally similar (same system
+  message + variable user text), the variance is usually low.</li>
+<li><strong>Cache results.</strong> If the same prompt text is used repeatedly (e.g., a
+  templated system message), cache its token count rather than re-fetching it.</li>
+<li><strong>Prefer <code>countTokens</code> for the local portion.</strong> If the prompt is assembled
+  from a Claude-specific system message plus a large locally-tokenisable
+  document, you can count the document with <code>cl100k_base</code> as an approximation
+  for the part that is structurally similar across BPE models.</li>
+</ul>
+<p>For full setup instructions, environment variable configuration, and offline
+testing with a fake transport, see <a href="../remote-providers/">remote-providers.md</a>.</p>
+<hr />
+<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../loading-models/">loading-models.md</a> — how to load OpenAI and HuggingFace
+  encodings, the cache, and the <code>Encoding</code> factory.</li>
+<li><a href="../remote-providers/">remote-providers.md</a> — Claude and Gemini companion
+  setup, API key configuration, offline testing.</li>
+<li><a href="../../api-reference/">../api-reference.md</a> — complete API reference for
+  <code>Bpe</code>, <code>Encoding</code>, <code>TokenCounter</code>, <code>Remote\Anthropic</code>, and <code>Remote\Gemini</code>.</li>
+<li><a href="../../getting-started/">../getting-started.md</a> — installation and first
+  tokenization.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "navigation.indexes", "content.code.copy", "content.code.annotate", "search.suggest", "search.highlight", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
